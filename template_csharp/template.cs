@@ -19,8 +19,11 @@ namespace Lighthouse3
 			GL.ClearColor( Color.Black );
 			GL.Enable( EnableCap.Texture2D );
 			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );
-			ClientSize = new Size( 512, 512 );
+			ClientSize = new Size(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
 			game = new Game();
+			Console.WriteLine("Width: " + Width);
+			Console.WriteLine("Height: " + Height);
+
 			game.screen = new Surface( Width, Height );
 			Sprite.target = game.screen;
 			screenID = game.screen.GenTexture();

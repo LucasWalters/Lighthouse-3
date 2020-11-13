@@ -47,8 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Calc.cs" />
     <Compile Include="game.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="Primitives\Sphere.cs" />
+    <Compile Include="Primitives\Primitive.cs" />
     <Compile Include="Ray.cs" />
     <Compile Include="surface.cs" />
     <Compile Include="template.cs" />

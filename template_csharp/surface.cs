@@ -133,6 +133,19 @@ namespace Lighthouse3
 				pixels[x + y * width] = c;
 			}
 		}
+
+		public void SetPixels (int[] newPixels)
+        {
+			if (newPixels.Length != pixels.Length)
+			{
+				Console.WriteLine("Pixels incorrect size");
+				return;
+			}
+			for(int i = 0; i < pixels.Length; i++)
+            {
+				pixels[i] = newPixels[i];
+            }
+        }
 		public void Print( string t, int x, int y, int c )
 		{
 			if (!fontReady)

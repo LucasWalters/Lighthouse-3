@@ -7,26 +7,44 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+using Lighthouse3.Primitives;
 
 namespace Lighthouse3 {
 
 	class Game
 	{
+		public static int SCREEN_WIDTH = 1000;
+		public static int SCREEN_HEIGHT = 1000;
 		public Surface screen;
-		Sprite small;
+		//Sprite small;
+		Camera camera;
+		Sphere[] spheres;
+		int[] pixels;
 		public void Init()
 		{
-			screen.Clear( 0x2222ff );
-			small = new Sprite("../../assets/small.png");
-			Camera cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 0, -1f).Normalized(), new Vector2(500, 500), 1f);
+			//screen.Clear(0xcc33ff);
+			//small = new Sprite("../../assets/small.png");
+			camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), SCREEN_WIDTH, SCREEN_HEIGHT, 1f);
+
+			spheres = new Sphere[]
+			{ 
+				new Sphere(new Vector3(0, 0, 10), 3),
+				new Sphere(new Vector3(3, 3, 5), 2)
+				//new Sphere(new Vector3(0, 5, 20), 1),
+				//new Sphere(new Vector3(3, 3, 10), 4)
+			};
+			pixels = camera.Frame(spheres);
+			screen.SetPixels(pixels);
 		}
 		public void Tick()
 		{
-			screen.Print( "hello world!", 2, 2, 0xffffff );
+			//screen.Print( "hello world!", 2, 2, 0xffffff );
+			//screen.Plot(1, 1, 0xffffff);
+			screen.SetPixels(pixels);
 		}
 		public void Render()
 		{
-			small.Draw(20, 20, 1f);
+			//small.Draw(20, 20, 1f);
 			// render stuff over the backbuffer (OpenGL, sprites)
 		}
 	}
