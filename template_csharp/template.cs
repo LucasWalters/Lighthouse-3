@@ -7,7 +7,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
  
-namespace Template
+namespace Lighthouse3
 {
 	public class OpenTKApp : GameWindow
 	{

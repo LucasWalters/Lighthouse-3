@@ -8,7 +8,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
-namespace Template {
+namespace Lighthouse3 {
 
 	class Game
 	{
@@ -18,6 +18,7 @@ namespace Template {
 		{
 			screen.Clear( 0x2222ff );
 			small = new Sprite("../../assets/small.png");
+			Camera cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 0, -1f).Normalized(), new Vector2(500, 500), 1f);
 		}
 		public void Tick()
 		{
