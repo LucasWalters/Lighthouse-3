@@ -139,6 +139,7 @@ namespace Lighthouse3
 			if (newPixels.Length != pixels.Length)
 			{
 				Console.WriteLine("Pixels incorrect size");
+				Console.WriteLine("Current: " + pixels.Length + ", New: " + newPixels.Length);
 				return;
 			}
 			for(int i = 0; i < pixels.Length; i++)

@@ -13,8 +13,8 @@ namespace Lighthouse3 {
 
 	class Game
 	{
-		public static int SCREEN_WIDTH = 1000;
-		public static int SCREEN_HEIGHT = 1000;
+		public static int SCREEN_WIDTH = 960;
+		public static int SCREEN_HEIGHT = 540;
 		public Surface screen;
 		//Sprite small;
 		Camera camera;
@@ -24,12 +24,13 @@ namespace Lighthouse3 {
 		{
 			//screen.Clear(0xcc33ff);
 			//small = new Sprite("../../assets/small.png");
-			camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), SCREEN_WIDTH, SCREEN_HEIGHT, 1f);
+			camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), SCREEN_WIDTH, SCREEN_HEIGHT, 2f);
 
 			spheres = new Sphere[]
 			{ 
-				new Sphere(new Vector3(0, 0, 10), 3),
-				new Sphere(new Vector3(3, 3, 5), 2)
+				new Sphere(new Vector3(4, 0, 7), 2),
+				new Sphere(new Vector3(-3, 3.5f, 5), 1.5f),
+				new Sphere(new Vector3(0, 0, 10), 3f)
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)
 			};

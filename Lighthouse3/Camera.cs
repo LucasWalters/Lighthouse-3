@@ -53,7 +53,7 @@ namespace Lighthouse3
             // Make sure up always points up (unless direction is (0, (-)1, 0)
             if (direction.Z < 0)
                 up = -up;
-            Vector3 left = Vector3.Cross(direction, up);
+            Vector3 left = Vector3.Cross(direction, up) * ((float)screenWidth / screenHeight);
 
             screenCenter = position + direction * screenDistance;
 
