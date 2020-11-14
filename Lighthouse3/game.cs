@@ -24,7 +24,7 @@ namespace Lighthouse3 {
 		{
 			//screen.Clear(0xcc33ff);
 			//small = new Sprite("../../assets/small.png");
-			camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), SCREEN_WIDTH, SCREEN_HEIGHT, 2f);
+			camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), SCREEN_WIDTH, SCREEN_HEIGHT, 1.5f);
 
 			spheres = new Sphere[]
 			{ 
