@@ -93,22 +93,22 @@ namespace Lighthouse3
 
         public int[] Frame(Sphere[] spheres)
         {
-            float[] distances = new float[screenWidth * screenHeight];
+            Intersection[] intersections = new Intersection[screenWidth * screenHeight];
             float highest = 0f;
             float lowest = int.MaxValue;
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    float distance = GetPixelRay(x, y).Trace(spheres);
-                    distances[x + y * screenWidth] = distance;
-                    if (distance < 0)
+                    Intersection intersection = GetPixelRay(x, y).Trace(spheres);
+                    intersections[x + y * screenWidth] = intersection;
+                    if (intersection == null)
                         continue;
 
-                    if (distance > highest)
-                        highest = distance;
-                    else if (distance < lowest)
-                        lowest = distance;
+                    if (intersection.distance > highest)
+                        highest = intersection.distance;
+                    else if (intersection.distance < lowest)
+                        lowest = intersection.distance;
                 }
             }
             int[] pixels = new int[screenWidth * screenHeight];
@@ -116,11 +116,14 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    float distance = distances[x + y * screenWidth];
+                    Intersection intersection = intersections[x + y * screenWidth];
                     int color = 0x000000;
-                    if (distance > 0)
+                    if (intersection != null)
                     {
-                        color = new Color4(Calc.ILerp(highest, lowest, distance), 0, 0, 1).ToArgb();
+                        float distance = intersection.distance;
+                        Material material = intersection.material;
+                        color = new Color4(
+                            Calc.ILerp(highest, lowest, distance) * material.color.R,0, 0, material.color.A).ToArgb();
                     }
                     pixels[x + y * screenWidth] = color;
                 }

@@ -34,26 +34,23 @@ namespace Lighthouse3
             return intersection;
         }
 
-        public float Trace(Sphere[] spheres)
+        public Intersection Trace(Sphere[] spheres)
         {
             Intersection nearest = NearestIntersection(spheres);
-            if (nearest == null)
-                return -1;
-
-            return nearest.distance;
+            return nearest;
         }
     }
     public class Intersection
     {
         public float distance = -1;
         public Vector3 normal;
-        //Material
-
-        private Intersection() { }
-        public Intersection(float distance, Vector3 normal)
+        public Material material;
+        
+        public Intersection(float distance, Vector3 normal, Material material)
         {
             this.distance = distance;
             this.normal = normal;
+            this.material = material;
         }
     }
 }

@@ -4,13 +4,13 @@ using System.Collections;
 
 namespace Lighthouse3.Primitives
 {
-    public struct Sphere
+    public class Sphere : Primitive
     {
         public Vector3 position;
         public float radius;
         public float radiusSquared;
 
-        public Sphere(Vector3 position, float radius)
+        public Sphere(Material material, Vector3 position, float radius) : base(material)
         {
             this.position = position;
             this.radius = radius;
@@ -27,7 +27,7 @@ namespace Lighthouse3.Primitives
             if (p2 > radiusSquared) return null;
             distance -= (float)Math.Sqrt(radiusSquared - p2);
             if (distance <= 0) return null;
-            return new Intersection(distance, Vector3.Zero);
+            return new Intersection(distance, Vector3.Zero, material);
         }
     }
 }

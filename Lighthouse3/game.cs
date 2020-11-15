@@ -28,9 +28,9 @@ namespace Lighthouse3 {
 
 			spheres = new Sphere[]
 			{ 
-				new Sphere(new Vector3(4, 0, 7), 2),
-				new Sphere(new Vector3(-3, 3.5f, 5), 1.5f),
-				new Sphere(new Vector3(0, 0, 10), 3f)
+				//new Sphere(new Vector3(4, 0, 7), 2),
+				new Sphere(new Material(), new Vector3(-3, 3.5f, 8), 1.5f),
+				//new Sphere(new Vector3(0, 0, 20), 3f)
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)
 			};
