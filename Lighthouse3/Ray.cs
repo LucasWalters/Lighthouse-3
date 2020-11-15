@@ -22,10 +22,10 @@ namespace Lighthouse3
             return origin + direction * distance;
         }
 
-        public Intersection NearestIntersection(Sphere[] spheres)
+        public Intersection NearestIntersection(Primitive[] primitives)
         {
             Intersection intersection = null;
-            foreach(Sphere sphere in spheres)
+            foreach(Sphere sphere in primitives)
             {
                 Intersection i = sphere.Intersect(this);
                 if (i != null && (intersection == null || i.distance < intersection.distance))
@@ -34,9 +34,9 @@ namespace Lighthouse3
             return intersection;
         }
 
-        public Intersection Trace(Sphere[] spheres)
+        public Intersection Trace(Primitive[] primitives)
         {
-            Intersection nearest = NearestIntersection(spheres);
+            Intersection nearest = NearestIntersection(primitives);
             return nearest;
         }
     }
