@@ -91,7 +91,7 @@ namespace Lighthouse3
         }
 
 
-        public int[] Frame(Sphere[] spheres)
+        public int[] Frame(Primitive[] primitives)
         {
             Intersection[] intersections = new Intersection[screenWidth * screenHeight];
             float highest = 0f;
@@ -100,7 +100,7 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    Intersection intersection = GetPixelRay(x, y).Trace(spheres);
+                    Intersection intersection = GetPixelRay(x, y).Trace(primitives);
                     intersections[x + y * screenWidth] = intersection;
                     if (intersection == null)
                         continue;

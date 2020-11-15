@@ -18,7 +18,7 @@ namespace Lighthouse3.Primitives
         }
 
         // Returns null if no intersection
-        public Intersection Intersect(Ray ray)
+        public override Intersection Intersect(Ray ray)
         {
             Vector3 toCenter = position - ray.origin;
             float distance = Vector3.Dot(toCenter, ray.direction);

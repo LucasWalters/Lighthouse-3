@@ -5,12 +5,12 @@ namespace Lighthouse3
 {
     public class Calc
     {
-        //min >= at >= max
+        //Inverse lerp, maps value to [0, 1] based on min and max values
         public static float ILerp(float min, float max, float at)
         {
             return (at - min) / (max - min);
         }
-
+        
         public static float Lerp(float min, float max, float t)
         {
             return min + (max - min) * t;
