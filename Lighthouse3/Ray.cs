@@ -25,9 +25,9 @@ namespace Lighthouse3
         public Intersection NearestIntersection(Primitive[] primitives)
         {
             Intersection intersection = null;
-            foreach(Sphere sphere in primitives)
+            foreach(Primitive primitive in primitives)
             {
-                Intersection i = sphere.Intersect(this);
+                Intersection i = primitive.Intersect(this);
                 if (i != null && (intersection == null || i.distance < intersection.distance))
                     intersection = i;
             }

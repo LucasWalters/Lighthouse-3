@@ -122,8 +122,9 @@ namespace Lighthouse3
                     {
                         float distance = intersection.distance;
                         Material material = intersection.material;
-                        color = new Color4(
-                            Calc.ILerp(highest, lowest, distance) * material.color.R,0, 0, material.color.A).ToArgb();
+                        color = material.color.ToArgb();
+                        //color = new Color4(
+                        //    Calc.ILerp(highest, lowest, distance) * material.color.R,0, 0, material.color.A).ToArgb();
                     }
                     pixels[x + y * screenWidth] = color;
                 }

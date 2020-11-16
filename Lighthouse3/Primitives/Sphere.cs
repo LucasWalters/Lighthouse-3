@@ -10,7 +10,7 @@ namespace Lighthouse3.Primitives
         public float radius;
         public float radiusSquared;
 
-        public Sphere(Material material, Vector3 position, float radius) : base(material)
+        public Sphere(Vector3 position, float radius, Material material) : base(material)
         {
             this.position = position;
             this.radius = radius;
