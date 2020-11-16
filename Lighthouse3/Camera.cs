@@ -91,52 +91,31 @@ namespace Lighthouse3
         }
 
 
-        public int[] Frame(Primitive[] primitives)
+        public int[] Frame(Scene scene)
         {
-            Intersection[] intersections = new Intersection[screenWidth * screenHeight];
-            float highest = 0f;
-            float lowest = int.MaxValue;
-            for (int x = 0; x < screenWidth; x++)
-            {
-                for (int y = 0; y < screenHeight; y++)
-                {
-                    Intersection intersection = GetPixelRay(x, y).Trace(primitives);
-                    intersections[x + y * screenWidth] = intersection;
-                    if (intersection == null)
-                        continue;
-
-                    if (intersection.distance > highest)
-                        highest = intersection.distance;
-                    else if (intersection.distance < lowest)
-                        lowest = intersection.distance;
-                }
-            }
             int[] pixels = new int[screenWidth * screenHeight];
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    Intersection intersection = intersections[x + y * screenWidth];
-                    int color = 0x000000;
-                    if (intersection != null)
+                    int color;
+                    Intersection intersection = GetPixelRay(x, y).NearestIntersection(scene.primitives);
+                    if (intersection == null)
                     {
-
-                        // If pointlight on other side of normal
-                        
-                        float distance = intersection.distance;
-                        Material material = intersection.material;
-                        Vector3 intersectionPoint = intersection.ray.GetPoint(distance);
-                        Pointlight pointlight = new Pointlight(new Vector3(0, 0, 200), Color4.White, 1);
-                        Vector3 pointLightVector = pointlight.position - intersectionPoint;
-                        // Check if light is unobstructed
-                        Ray ray = new Ray(intersectionPoint, pointLightVector.Normalized());
-                        float nearestIntersectionDistance = ray.NearestIntersection(primitives) != null ? ray.NearestIntersection(primitives).distance : float.MaxValue;
-                        if (nearestIntersectionDistance * nearestIntersectionDistance > pointLightVector.LengthSquared)
+                        color = scene.backgroundColor.ToArgb();
+                    } 
+                    else
+                    {
+                        Color4 illumination = Color4.Black;
+                        foreach (Light light in scene.lights)
                         {
-                            color = material.color.ToArgb();
+                            Color4 lightColor = light.DirectIllumination(intersection, scene);
+                            illumination = illumination.Add(lightColor);
                         }
+                        color = intersection.material.color.Multiply(illumination).ToArgb();
 
                     }
+
                     pixels[x + y * screenWidth] = color;
                 }
             }

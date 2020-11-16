@@ -28,11 +28,12 @@ namespace Lighthouse3.Primitives
                 Vector3 toCenter = position - ray.origin;
                 float distance = Vector3.Dot(toCenter, ray.direction);
                 Vector3 perpToCenter = toCenter - distance * ray.direction;
-                float p2 = Vector3.Dot(perpToCenter, perpToCenter);
+                float p2 = perpToCenter.LengthSquared;
                 if (p2 > radiusSquared) return null;
                 distance -= (float)Math.Sqrt(radiusSquared - p2);
                 if (distance <= 0) return null;
-                return new Intersection(distance, ray, Vector3.Zero, material);
+                Vector3 normal = (ray.GetPoint(distance) - position).Normalized();
+                return new Intersection(distance, ray, normal, material);
             }
         }
     }

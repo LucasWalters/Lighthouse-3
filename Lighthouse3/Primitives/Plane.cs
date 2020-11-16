@@ -22,10 +22,10 @@ namespace Lighthouse3.Primitives
         public override Intersection Intersect(Ray ray)
         {
             float rayDot = Vector3.Dot(ray.direction, normal);
-            if (rayDot < parallel_margin)
+            if (rayDot > -parallel_margin)
                 return null;
             float t = Vector3.Dot(position - ray.origin, normal);
-            if (t <= 0)
+            if (t >= 0)
                 return null;
             return new Intersection(t / rayDot, ray, normal, material);
         }

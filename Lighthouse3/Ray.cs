@@ -5,7 +5,7 @@ using System.Collections;
 
 namespace Lighthouse3
 {
-    public struct Ray
+    public class Ray
     {
         public Vector3 origin;
         public Vector3 direction;

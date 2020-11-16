@@ -20,9 +20,13 @@ namespace Lighthouse3
             this.reflectiveness = 0;
         }
 
-        public Material(float r, float g, float b, float a, float reflectiveness)
+        public Material(float r, float g, float b, float a, float reflectiveness) : this(new Color4(r, g, b, a), reflectiveness)
         {
-            this.color = new Color4(r, g, b, a);
+        }
+
+        public Material(Color4 color, float reflectiveness)
+        {
+            this.color = color;
             this.reflectiveness = reflectiveness;
         }
 
