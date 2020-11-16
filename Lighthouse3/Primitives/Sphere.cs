@@ -20,14 +20,20 @@ namespace Lighthouse3.Primitives
         // Returns null if no intersection
         public override Intersection Intersect(Ray ray)
         {
-            Vector3 toCenter = position - ray.origin;
-            float distance = Vector3.Dot(toCenter, ray.direction);
-            Vector3 perpToCenter = toCenter - distance * ray.direction;
-            float p2 = Vector3.Dot(perpToCenter, perpToCenter);
-            if (p2 > radiusSquared) return null;
-            distance -= (float)Math.Sqrt(radiusSquared - p2);
-            if (distance <= 0) return null;
-            return new Intersection(distance, Vector3.Zero, material);
+            //if((ray.origin-position).LengthSquared < radiusSquared)
+            //{
+                // ABC formula
+            //} else
+            {
+                Vector3 toCenter = position - ray.origin;
+                float distance = Vector3.Dot(toCenter, ray.direction);
+                Vector3 perpToCenter = toCenter - distance * ray.direction;
+                float p2 = Vector3.Dot(perpToCenter, perpToCenter);
+                if (p2 > radiusSquared) return null;
+                distance -= (float)Math.Sqrt(radiusSquared - p2);
+                if (distance <= 0) return null;
+                return new Intersection(distance, ray, Vector3.Zero, material);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Lighthouse3 {
 		public static int SCREEN_WIDTH = 960;
 		public static int SCREEN_HEIGHT = 540;
 		public Surface screen;
+        // public Pointlight pointlight;
 		//Sprite small;
 		Camera camera;
 		Primitive[] objects;
@@ -30,8 +31,8 @@ namespace Lighthouse3 {
 			objects = new Primitive[]
 			{ 
 				//new Sphere(new Vector3(4, 0, 7), 2),
-				new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
-				new Plane(new Vector3(0, 0, 100), new Vector3(0, -1, 0), blue)
+				//new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
+				new Plane(new Vector3(0, 0, 30), new Vector3(0, 0, 1), blue)
 				//new Sphere(new Vector3(0, 0, 20), 3f)
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)

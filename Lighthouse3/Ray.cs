@@ -43,12 +43,14 @@ namespace Lighthouse3
     public class Intersection
     {
         public float distance = -1;
+        public Ray ray;
         public Vector3 normal;
         public Material material;
         
-        public Intersection(float distance, Vector3 normal, Material material)
+        public Intersection(float distance, Ray ray, Vector3 normal, Material material)
         {
             this.distance = distance;
+            this.ray = ray;
             this.normal = normal;
             this.material = material;
         }

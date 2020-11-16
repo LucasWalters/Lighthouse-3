@@ -120,11 +120,22 @@ namespace Lighthouse3
                     int color = 0x000000;
                     if (intersection != null)
                     {
+
+                        // If pointlight on other side of normal
+                        
                         float distance = intersection.distance;
                         Material material = intersection.material;
-                        color = material.color.ToArgb();
-                        //color = new Color4(
-                        //    Calc.ILerp(highest, lowest, distance) * material.color.R,0, 0, material.color.A).ToArgb();
+                        Vector3 intersectionPoint = intersection.ray.GetPoint(distance);
+                        Pointlight pointlight = new Pointlight(new Vector3(0, 0, 200), Color4.White, 1);
+                        Vector3 pointLightVector = pointlight.position - intersectionPoint;
+                        // Check if light is unobstructed
+                        Ray ray = new Ray(intersectionPoint, pointLightVector.Normalized());
+                        float nearestIntersectionDistance = ray.NearestIntersection(primitives) != null ? ray.NearestIntersection(primitives).distance : float.MaxValue;
+                        if (nearestIntersectionDistance * nearestIntersectionDistance > pointLightVector.LengthSquared)
+                        {
+                            color = material.color.ToArgb();
+                        }
+
                     }
                     pixels[x + y * screenWidth] = color;
                 }

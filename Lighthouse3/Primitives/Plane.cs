@@ -27,7 +27,7 @@ namespace Lighthouse3.Primitives
             float t = Vector3.Dot(position - ray.origin, normal);
             if (t <= 0)
                 return null;
-            return new Intersection(t / rayDot, normal, material);
+            return new Intersection(t / rayDot, ray, normal, material);
         }
     }
 }
