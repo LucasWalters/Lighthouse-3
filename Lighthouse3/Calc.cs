@@ -66,5 +66,13 @@ namespace Lighthouse3
             float b = Calc.Max(left.B * right.B, 0);
             return new Color4(r, g, b, left.A);
         }
+
+        public static Color4 Multiply(this Color4 color, float scalar)
+        {
+            float r = Calc.Max(color.R * scalar, 0);
+            float g = Calc.Max(color.G * scalar, 0);
+            float b = Calc.Max(color.B * scalar, 0);
+            return new Color4(r, g, b, color.A);
+        }
     }
 }

@@ -22,10 +22,11 @@ namespace Lighthouse3
             scene.backgroundColor = Color4.Black;
             scene.lights = new Light[]
             {
-                new PointLight(new Vector3(0, 8, 3), Color4.White, 1)
+                new PointLight(new Vector3(0, 0, 0), Color4.White, 1)
             };
 
-            Material red = new Material(Color4.Red, 0);
+            Material red = new Material(Color4.Red, 1);
+            Material yellow = new Material(Color4.Yellow, 0);
             Material blue = new Material(Color4.PowderBlue, 0);
 
             scene.primitives = new Primitive[]
@@ -33,7 +34,9 @@ namespace Lighthouse3
 				//new Sphere(new Vector3(4, 0, 7), 2),
 				//new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
 				new Plane(new Vector3(0, 0, 100), new Vector3(0, 0, -1), blue),
-				new Sphere(new Vector3(0, 0, 20), 3f, red)
+                new Plane(new Vector3(-100, 0, 0), new Vector3(1, 0, 0), yellow),
+
+                new Sphere(new Vector3(0, 0, 20), 3f, red)
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)
 			};

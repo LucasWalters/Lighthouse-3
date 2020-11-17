@@ -1,5 +1,6 @@
 ﻿using Lighthouse3.Primitives;
 using OpenTK;
+using OpenTK.Graphics;
 using System;
 using System.Collections;
 
@@ -34,10 +35,41 @@ namespace Lighthouse3
             return intersection;
         }
 
-        public Intersection Trace(Primitive[] primitives)
+        public Color4 Trace(Scene scene)
         {
-            Intersection nearest = NearestIntersection(primitives);
-            return nearest;
+            Intersection intersection = NearestIntersection(scene.primitives);
+            if (intersection == null)
+                return scene.backgroundColor;
+
+            Color4 color = Color4.Black;
+
+            //Handle diffuse color
+            if (intersection.material.diffuse > 0)
+            {
+                Color4 illumination = Color4.Black;
+                foreach (Light light in scene.lights)
+                {
+                    Color4 lightColor = light.DirectIllumination(intersection, scene);
+                    illumination = illumination.Add(lightColor);
+                }
+                color = color.Add(intersection.material.color.Multiply(illumination.Multiply(intersection.material.diffuse)));
+            }
+
+            //Handle specularity
+            if (intersection.material.specularity > 0)
+            {
+                Ray reflection = Reflect(intersection.distance, intersection.normal);
+                color = color.Add(reflection.Trace(scene).Multiply(intersection.material.specularity));
+            }
+
+            return color;
+        }
+
+        public Ray Reflect(float distance, Vector3 normal)
+        {
+            Vector3 rOrigin = GetPoint(distance);
+            Vector3 rDirection = direction - 2 * normal * Vector3.Dot(direction, normal);
+            return new Ray(rOrigin, rDirection.Normalized());
         }
     }
     public class Intersection

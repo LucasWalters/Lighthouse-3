@@ -98,25 +98,7 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    int color;
-                    Intersection intersection = GetPixelRay(x, y).NearestIntersection(scene.primitives);
-                    if (intersection == null)
-                    {
-                        color = scene.backgroundColor.ToArgb();
-                    } 
-                    else
-                    {
-                        Color4 illumination = Color4.Black;
-                        foreach (Light light in scene.lights)
-                        {
-                            Color4 lightColor = light.DirectIllumination(intersection, scene);
-                            illumination = illumination.Add(lightColor);
-                        }
-                        color = intersection.material.color.Multiply(illumination).ToArgb();
-
-                    }
-
-                    pixels[x + y * screenWidth] = color;
+                    pixels[x + y * screenWidth] = GetPixelRay(x, y).Trace(scene).ToArgb();
                 }
             }
             return pixels;
