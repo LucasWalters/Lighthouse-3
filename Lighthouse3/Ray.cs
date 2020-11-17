@@ -30,7 +30,9 @@ namespace Lighthouse3
             {
                 Intersection i = primitive.Intersect(this);
                 if (i != null && (intersection == null || i.distance < intersection.distance))
+                {
                     intersection = i;
+                }
             }
             return intersection;
         }
@@ -78,13 +80,15 @@ namespace Lighthouse3
         public Ray ray;
         public Vector3 normal;
         public Material material;
+        public bool backface;
         
-        public Intersection(float distance, Ray ray, Vector3 normal, Material material)
+        public Intersection(float distance, Ray ray, Vector3 normal, Material material, bool backface)
         {
             this.distance = distance;
             this.ray = ray;
             this.normal = normal;
             this.material = material;
+            this.backface = backface;
         }
     }
 }

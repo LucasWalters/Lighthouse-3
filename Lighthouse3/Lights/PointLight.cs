@@ -10,6 +10,7 @@ namespace Lighthouse3.Lights
 {
     public class PointLight : Light
     {
+        public static readonly float ray_offset = 0.0005f;
         public Vector3 position;
         public PointLight(Vector3 position, Color4 color, float intensity) : base(color, intensity)
         {
@@ -25,7 +26,8 @@ namespace Lighthouse3.Lights
             if (Vector3.Dot(toLight, intersection.normal) <= 0)
                 return Color4.Black;
             //Check if light is obstructed
-            Ray ray = new Ray(intersectionPoint, toLight.Normalized());
+            Vector3 rayDirection = toLight.Normalized();
+            Ray ray = new Ray(intersectionPoint + rayDirection * ray_offset, rayDirection);
             Intersection i = ray.NearestIntersection(scene.primitives);
             if (i == null || i.distance * i.distance > toLight.LengthSquared)
                 return color;

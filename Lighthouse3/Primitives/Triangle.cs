@@ -43,7 +43,7 @@ namespace Lighthouse3.Primitives
             Vector3 C3 = Vector3.Cross(edge02, hit - coordinates[2]);
             if (Vector3.Dot(normal, C3) < 0) return null;
 
-            return new Intersection(t / rayDot, ray, normal, material);
+            return new Intersection(t / rayDot, ray, normal, material, false);
 
         }
     }

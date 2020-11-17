@@ -33,7 +33,7 @@ namespace Lighthouse3.Primitives
                 distance -= (float)Math.Sqrt(radiusSquared - p2);
                 if (distance <= 0) return null;
                 Vector3 normal = (ray.GetPoint(distance) - position).Normalized();
-                return new Intersection(distance, ray, normal, material);
+                return new Intersection(distance, ray, normal, material, false);
             }
         }
     }

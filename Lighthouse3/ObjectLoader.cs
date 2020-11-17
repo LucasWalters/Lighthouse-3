@@ -4,6 +4,8 @@ using ObjLoader.Loader.Loaders;
 using ObjLoader.Loader.Common;
 using ObjLoader.Loader.Data;
 using ObjLoader.Loader.TypeParsers;
+using OpenTK;
+using ObjLoader.Loader.Data.VertexData;
 
 namespace Lighthouse3
 {
@@ -20,6 +22,11 @@ namespace Lighthouse3
             Console.WriteLine(result.Groups.Count);
             Console.WriteLine(result.Materials.Count);
             return result;
+        }
+
+        public static Vector3 VertexToVector3(Vertex vertex)
+        {
+            return new Vector3(vertex.X, vertex.Y, vertex.Z);
         }
     }
 }
