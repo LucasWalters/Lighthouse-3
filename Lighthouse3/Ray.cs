@@ -37,31 +37,31 @@ namespace Lighthouse3
             return intersection;
         }
 
-        public Color4 Trace(Scene scene)
+        public Vector3 Trace(Scene scene)
         {
             Intersection intersection = NearestIntersection(scene.primitives);
             if (intersection == null)
                 return scene.backgroundColor;
 
-            Color4 color = Color4.Black;
+            Vector3 color = Color.Black;
 
             //Handle diffuse color
             if (intersection.material.diffuse > 0)
             {
-                Color4 illumination = Color4.Black;
+                Vector3 illumination = Color.Black;
                 foreach (Light light in scene.lights)
                 {
-                    Color4 lightColor = light.DirectIllumination(intersection, scene);
-                    illumination = illumination.Add(lightColor);
+                    Vector3 lightColor = light.DirectIllumination(intersection, scene);
+                    illumination = illumination + lightColor;
                 }
-                color = color.Add(intersection.material.color.Multiply(illumination.Multiply(intersection.material.diffuse)));
+                color = intersection.material.color * illumination * intersection.material.diffuse;
             }
 
             //Handle specularity
             if (intersection.material.specularity > 0)
             {
                 Ray reflection = Reflect(intersection.distance, intersection.normal);
-                color = color.Add(reflection.Trace(scene).Multiply(intersection.material.specularity));
+                color += reflection.Trace(scene) * intersection.material.specularity;
             }
 
             return color;

@@ -16,7 +16,7 @@ namespace Lighthouse3
 		protected override void OnLoad( EventArgs e )
 		{
 			// called upon app init
-			GL.ClearColor( Color.Black );
+			GL.ClearColor( Color4.Black );
 			GL.Enable( EnableCap.Texture2D );
 			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );
 			ClientSize = new Size(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);

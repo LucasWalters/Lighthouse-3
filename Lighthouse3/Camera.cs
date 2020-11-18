@@ -98,7 +98,7 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    pixels[x + y * screenWidth] = GetPixelRay(x, y).Trace(scene).ToArgb();
+                    pixels[x + y * screenWidth] = Color.ToARGB(GetPixelRay(x, y).Trace(scene));
                 }
             }
             return pixels;
