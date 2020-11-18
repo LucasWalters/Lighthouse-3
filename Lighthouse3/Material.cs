@@ -7,6 +7,14 @@ namespace Lighthouse3
 {
     public class Material
     {
+
+        //Statics
+        public static Material Red = new Material(Color4.Red, 0);
+        public static Material Yellow = new Material(Color4.Yellow, 0);
+        public static Material Green = new Material(Color4.Green, 0);
+        public static Material Blue = new Material(Color4.PowderBlue, 0);
+
+
         public Vector3 color;
 
         public float specularity;
