@@ -28,13 +28,26 @@ namespace Lighthouse3
             Intersection intersection = null;
             foreach(Primitive primitive in primitives)
             {
-                Intersection i = primitive.Intersect(this);
-                if (i != null && (intersection == null || i.distance < intersection.distance))
+                float t;
+                bool intersected = primitive.Intersect(this, out t);
+                if (intersected && (intersection == null || t < intersection.distance))
                 {
-                    intersection = i;
+                    intersection = new Intersection(t, this, primitive);
                 }
             }
             return intersection;
+        }
+
+        public bool Occluded(Primitive[] primitives, float distanceSquared)
+        {
+            foreach (Primitive primitive in primitives)
+            {
+                float t;
+                bool intersected = primitive.Intersect(this, out t);
+                if (intersected && t*t < distanceSquared)
+                    return true;
+            }
+            return false;
         }
 
         public Vector3 Trace(Scene scene)
@@ -46,7 +59,7 @@ namespace Lighthouse3
             Vector3 color = Color.Black;
 
             //Handle diffuse color
-            if (intersection.material.diffuse > 0)
+            if (intersection.hit.material.diffuse > 0)
             {
                 Vector3 illumination = Color.Black;
                 foreach (Light light in scene.lights)
@@ -54,17 +67,17 @@ namespace Lighthouse3
                     Vector3 lightColor = light.DirectIllumination(intersection, scene);
                     illumination = illumination + lightColor;
                 }
-                color = intersection.material.color * illumination * intersection.material.diffuse;
+
+                color = illumination * intersection.hit.material.diffuse;
             }
 
             //Handle specularity
-            if (intersection.material.specularity > 0)
+            if (intersection.hit.material.specularity > 0)
             {
-                Ray reflection = Reflect(intersection.distance, intersection.normal);
-                color += reflection.Trace(scene) * intersection.material.specularity;
+                Ray reflection = Reflect(intersection.distance, intersection.hit.Normal(intersection));
+                color += reflection.Trace(scene) * intersection.hit.material.specularity;
             }
-
-            return color;
+            return intersection.hit.material.color * color;
         }
 
         public Ray Reflect(float distance, Vector3 normal)
@@ -78,17 +91,13 @@ namespace Lighthouse3
     {
         public float distance = -1;
         public Ray ray;
-        public Vector3 normal;
-        public Material material;
-        public bool backface;
+        public Primitive hit;
         
-        public Intersection(float distance, Ray ray, Vector3 normal, Material material, bool backface)
+        public Intersection(float distance, Ray ray, Primitive hit)
         {
             this.distance = distance;
             this.ray = ray;
-            this.normal = normal;
-            this.material = material;
-            this.backface = backface;
+            this.hit = hit;
         }
     }
 }

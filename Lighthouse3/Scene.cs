@@ -24,11 +24,9 @@ namespace Lighthouse3
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
-                new PointLight(new Vector3(0, 8, -8), Vector3.One, 1)
+                new PointLight(new Vector3(0, 5, 0), Color.White, 1)
             };
 
-            
-            
             scene.primitives = new Primitive[]
             { 
 				//new Sphere(new Vector3(4, 0, 7), 2),
@@ -38,12 +36,11 @@ namespace Lighthouse3
                 //new Plane(new Vector3(0, 0, 11), new Vector3(0, 0, -1), green),
 
                 // new Sphere(new Vector3(0, 0, 10), 3f, red)
-               // new Triangle(new Vector3(-1, 1, 10), new Vector3(-2, 3, 10), new Vector3(1, 2, 10), red),
+                //new Triangle(new Vector3(2, 0, 10), new Vector3(-2, 0, 10), new Vector3(0, 3, 10), red),
                 //new Triangle(new Vector3(-2, 3, 10), new Vector3(-1, 1, 10), new Vector3(1, 2, 10), red)
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)
 			};
-
             scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/teapot.obj")).ToArray();
 
             return scene;

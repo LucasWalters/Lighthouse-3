@@ -6,45 +6,46 @@ namespace Lighthouse3.Primitives
 {
     public class Triangle : Primitive
     {
-        public static readonly float parallel_margin = 0.000001f;
-        public Vector3[] coordinates = new Vector3[3];
+        private static readonly float kEpsilon = 0.0005f;
+        public Vector3 p0;
+        public Vector3 p1;
+        public Vector3 p2;
 
-        public Triangle(Vector3 c1, Vector3 c2, Vector3 c3, Material material) : base(material)
+        public Triangle(Vector3 p0, Vector3 p1, Vector3 p2, Material material) : base(material)
         {
-            this.coordinates[0] = c1;
-            this.coordinates[1] = c2;
-            this.coordinates[2] = c3;
+            this.p0 = p0;
+            this.p1 = p1;
+            this.p2 = p2;
         }
 
         // Returns null if no intersection
-        public override Intersection Intersect(Ray ray)
+        public override bool Intersect(Ray ray, out float t)
         {
-            Vector3 normal = Vector3.Cross(coordinates[1] - coordinates[0], coordinates[2] - coordinates[0]);
+            t = -1f;
+            Vector3 v0v1 = p1 - p0;
+            Vector3 v0v2 = p2 - p0;
+            Vector3 pvec = Vector3.Cross(ray.direction, v0v2);
+            float det = Vector3.Dot(v0v1, pvec);
+            // ray and triangle are parallel if det is close to 0
+            if (Math.Abs(det) < kEpsilon) return false;
 
-            float rayDot = Vector3.Dot(ray.direction, normal);
-            if (rayDot > -parallel_margin)
-                return null;
-            float t = Vector3.Dot(coordinates[0] - ray.origin, normal);
-            if (t >= 0)
-                return null;
+            float invDet = 1 / det;
 
-            Vector3 hit = ray.GetPoint(t / rayDot);
+            Vector3 tvec = ray.origin - p0;
+            float u = Vector3.Dot(tvec, pvec) * invDet;
+            if (u < 0 || u > 1) return false;
 
-            Vector3 edge10 = coordinates[1] - coordinates[0];
-            Vector3 edge21 = coordinates[2] - coordinates[1];
-            Vector3 edge02 = coordinates[0] - coordinates[2];
+            Vector3 qvec = Vector3.Cross(tvec, v0v1);
+            float v = Vector3.Dot(ray.direction, qvec) * invDet;
+            if (v < 0 || u + v > 1) return false;
 
-            Vector3 C1 = Vector3.Cross(edge10, hit - coordinates[0]);
-            if (Vector3.Dot(normal, C1) < 0) return null;
+            t = Vector3.Dot(v0v2, qvec) * invDet;
+            return t > 0;
+        }
 
-            Vector3 C2 = Vector3.Cross(edge21, hit - coordinates[1]);
-            if (Vector3.Dot(normal, C2) < 0) return null;
-
-            Vector3 C3 = Vector3.Cross(edge02, hit - coordinates[2]);
-            if (Vector3.Dot(normal, C3) < 0) return null;
-
-            return new Intersection(t / rayDot, ray, normal, material, false);
-
+        public override Vector3 Normal(Intersection intersection = null)
+        {
+            return Vector3.Cross(p1 - p0, p2 - p0).Normalized();
         }
     }
 }

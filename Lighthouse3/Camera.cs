@@ -49,11 +49,17 @@ namespace Lighthouse3
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
-            Vector3 up = Vector3.Cross(direction, Vector3.UnitX);
+            Vector3 up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
+            Console.WriteLine(up);
+            if (Math.Abs(direction.X) == 1f)
+            {
+                up = Vector3.UnitY;
+            }
             // Make sure up always points up (unless direction is (0, (-)1, 0)
             if (direction.Z < 0)
                 up = -up;
-            Vector3 left = Vector3.Cross(direction, up) * ((float)screenWidth / screenHeight);
+            Vector3 left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
+            Console.WriteLine(left);
 
             screenCenter = position + direction * screenDistance;
 

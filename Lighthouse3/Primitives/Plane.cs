@@ -19,7 +19,7 @@ namespace Lighthouse3.Primitives
             this.normal = normal;
         }
 
-        public override Intersection Intersect(Ray ray)
+        public override bool Intersect(Ray ray, out float t)
         {
             float rayDot = Vector3.Dot(ray.direction, normal);
             Vector3 n = normal;
@@ -28,10 +28,18 @@ namespace Lighthouse3.Primitives
                 n = -n;
                 rayDot = Vector3.Dot(ray.direction, n);
             }
-            float t = Vector3.Dot(position - ray.origin, n);
+            t = Vector3.Dot(position - ray.origin, n);
             if (t < 0)
-                return new Intersection(t / rayDot, ray, n, material, false);
-            return null;
+            {
+                t /= rayDot;
+                return true;
+            }
+            return false;
+        }
+
+        public override Vector3 Normal(Intersection intersection = null)
+        {
+            return normal;
         }
     }
 }

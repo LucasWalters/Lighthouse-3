@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using OpenTK.Graphics;
 using System.Drawing;
+using OpenTK;
 
 namespace Lighthouse3.Primitives
 {
@@ -17,6 +18,8 @@ namespace Lighthouse3.Primitives
         }
 
 
-        public abstract Intersection Intersect(Ray ray);
+        public abstract bool Intersect(Ray ray, out float t);
+
+        public abstract Vector3 Normal(Intersection intersection = null);
     }
 }
