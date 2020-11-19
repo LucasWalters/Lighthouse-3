@@ -54,7 +54,7 @@ namespace Lighthouse3
                     Vector3 lightColor = light.DirectIllumination(intersection, scene);
                     illumination = illumination + lightColor;
                 }
-                color = intersection.material.color * illumination * intersection.material.diffuse;
+                color = illumination * intersection.material.diffuse;
             }
 
             //Handle specularity
@@ -64,7 +64,7 @@ namespace Lighthouse3
                 color += reflection.Trace(scene) * intersection.material.specularity;
             }
 
-            return color;
+            return intersection.material.color * color;
         }
 
         public Ray Reflect(float distance, Vector3 normal)

@@ -1,5 +1,6 @@
 ﻿using OpenTK;
 using OpenTK.Graphics;
+using System;
 using System.Collections;
 
 namespace Lighthouse3
@@ -38,6 +39,21 @@ namespace Lighthouse3
             if (a < b)
                 return b;
             return a;
+        }
+
+        public static int MaxDimension(Vector3 vector)
+        {
+            return (vector.X > vector.Y) ? ((vector.X > vector.Z) ? 0 : 2) : ((vector.Y > vector.Z) ? 1 : 2);
+        }
+
+        public static Vector3 Abs(Vector3 vector)
+        {
+            return new Vector3(Math.Abs(vector.X), Math.Abs(vector.Y), Math.Abs(vector.Z));
+        }
+
+        public static Vector3 Permute(Vector3 vector, int x, int y, int z)
+        {
+            return new Vector3(vector[x], vector[y], vector[z]);
         }
     }
 
