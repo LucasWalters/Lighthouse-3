@@ -23,16 +23,14 @@ namespace Lighthouse3.Lights
             Vector3 intersectionPoint = intersection.ray.GetPoint(intersection.distance);
             Vector3 toLight = position - intersectionPoint;
             //Light is obstructed by face that we hit
-            if (Vector3.Dot(toLight, intersection.normal) <= 0)
+            if (Vector3.Dot(toLight, intersection.hit.Normal(intersection)) <= 0)
                 return Vector3.Zero;
             //Check if light is obstructed
             Vector3 rayDirection = toLight.Normalized();
             Ray ray = new Ray(intersectionPoint + rayDirection * ray_offset, rayDirection);
-            Intersection i = ray.NearestIntersection(scene.primitives);
-            if (i == null || i.distance * i.distance > toLight.LengthSquared)
-                return color;
+            bool occluded = ray.Occluded(scene.primitives, toLight.LengthSquared);
 
-            return Vector3.Zero;
+            return occluded ? Color.Black : color;
         }
     }
 }
