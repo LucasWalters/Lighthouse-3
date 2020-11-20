@@ -26,22 +26,24 @@ namespace Lighthouse3
             {
                 new PointLight(new Vector3(0, 5, 0), Color.White, 1)
             };
+            Material yellow = Material.Yellow;
+            yellow.isCheckerboard = true;
 
             scene.primitives = new Primitive[]
             { 
 				//new Sphere(new Vector3(4, 0, 7), 2),
 				//new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
 				new Plane(new Vector3(0, -5, 0), new Vector3(0, 1, 0), Material.Blue),
-                new Plane(new Vector3(0, 0, 100), new Vector3(0, 0, -1), Material.Yellow),
+                new Plane(new Vector3(0, 0, 10), new Vector3(0, 0, -1), yellow),
                 //new Plane(new Vector3(0, 0, 11), new Vector3(0, 0, -1), green),
 
-                // new Sphere(new Vector3(0, 0, 10), 3f, red)
+                //new Sphere(new Vector3(0, 0, 5), 3f, new Material(Color.Red, 1))
                 //new Triangle(new Vector3(2, 0, 10), new Vector3(-2, 0, 10), new Vector3(0, 3, 10), red),
                 //new Triangle(new Vector3(-2, 3, 10), new Vector3(-1, 1, 10), new Vector3(1, 2, 10), red)
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)
 			};
-            scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/teapot.obj")).ToArray();
+            //scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/teapot.obj")).ToArray();
 
             return scene;
         }

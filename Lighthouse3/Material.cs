@@ -16,7 +16,7 @@ namespace Lighthouse3
 
 
         public Vector3 color;
-
+        public bool isCheckerboard;
         public float specularity;
         public float diffuse;
 

@@ -50,6 +50,7 @@ namespace Lighthouse3
             return false;
         }
 
+        // Returns a color
         public Vector3 Trace(Scene scene)
         {
             Intersection intersection = NearestIntersection(scene.primitives);
@@ -76,6 +77,19 @@ namespace Lighthouse3
             {
                 Ray reflection = Reflect(intersection.distance, intersection.hit.Normal(intersection));
                 color += reflection.Trace(scene) * intersection.hit.material.specularity;
+            }
+            //Render checkerboard pattern
+            if (intersection.hit.material.isCheckerboard)
+            {
+                Vector3 point = GetPoint(intersection.distance);
+                int x = (int)point.X;
+                if (point.X < 0)
+                    x++;
+                int y = (int)point.Y;
+                if (point.Y < 0)
+                    y++;
+                bool isEven = (x + y) % 2 == 0;
+                return (intersection.hit.material.color * (isEven ? 1 : 0.5f)) * color;
             }
             return intersection.hit.material.color * color;
         }
