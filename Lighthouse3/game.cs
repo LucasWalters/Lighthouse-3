@@ -29,12 +29,36 @@ namespace Lighthouse3 {
 			pixels = camera.Frame(scene);
 			screen.SetPixels(pixels);
 		}
+
 		public void Tick()
 		{
-			//screen.Print( "hello world!", 2, 2, 0xffffff );
-			//screen.Plot(1, 1, 0xffffff);
-			screen.SetPixels(pixels);
+            //Vector3 initialCameraPos = camera.position;
+            //Vector3 initialCameraDirection = camera.direction;
+            //var keyboard = OpenTK.Input.Keyboard.GetState();
+            //if (keyboard[OpenTK.Input.Key.Up]) camera.position += Vector3.UnitY;
+            //if (keyboard[OpenTK.Input.Key.Down]) camera.position -= Vector3.UnitY;
+            //if (keyboard[OpenTK.Input.Key.Left]) camera.position -= Vector3.UnitX;
+            //if (keyboard[OpenTK.Input.Key.Right]) camera.position += Vector3.UnitX;
+            //if (keyboard[OpenTK.Input.Key.Q]) camera.position -= Vector3.UnitZ;
+            //if (keyboard[OpenTK.Input.Key.E]) camera.position += Vector3.UnitZ;
+            //if (keyboard[OpenTK.Input.Key.R]) camera.direction += Vector3.UnitX * 0.1f;
+            //if (keyboard[OpenTK.Input.Key.T]) camera.direction -= Vector3.UnitX * 0.1f;
+            //if (keyboard[OpenTK.Input.Key.F]) camera.direction += Vector3.UnitY * 0.1f;
+            //if (keyboard[OpenTK.Input.Key.G]) camera.direction -= Vector3.UnitY * 0.1f;
+            //if (keyboard[OpenTK.Input.Key.V]) camera.direction += Vector3.UnitZ * 0.1f;
+            //if (keyboard[OpenTK.Input.Key.B]) camera.direction -= Vector3.UnitZ * 0.1f;
+
+            //if(initialCameraPos != camera.position || initialCameraDirection != camera.direction)
+            //{
+            //    camera.direction = camera.direction.Normalized();
+            //    Console.WriteLine(camera.position);
+            //    Console.WriteLine(camera.direction);
+            //    camera.UpdateCamera();
+            //    pixels = camera.Frame(scene);
+                screen.SetPixels(pixels);
+            //}
 		}
+
 		public void Render()
 		{
 			//small.Draw(20, 20, 1f);
