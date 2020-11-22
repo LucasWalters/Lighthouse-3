@@ -25,21 +25,30 @@ namespace Lighthouse3
 
 
             List<Triangle> triangles = new List<Triangle>();
+
+            // Iterate over each object in the OBJ file
             for (int i = 0; i < loadResult.Groups.Count; i++)
             {
-                Console.WriteLine(loadResult.Groups[i].Faces.Count);
+
+                // Iterate over all faces of the object
                 int amount = loadResult.Groups[i].Faces.Count;
                 for (int j = 0; j < amount; j++)
                 {
+                    List<Vector3> points = new List<Vector3>();
 
+                    //Iterate over each face
                     Face face = loadResult.Groups[i].Faces[j];
-                    Vector3 point1 = ObjectLoader.VertexToVector3(loadResult.Vertices[face[0].VertexIndex - 1]);
-                    Vector3 point2 = ObjectLoader.VertexToVector3(loadResult.Vertices[face[1].VertexIndex - 1]);
-                    Vector3 point3 = ObjectLoader.VertexToVector3(loadResult.Vertices[face[2].VertexIndex - 1]);
-                    triangles.Add(new Triangle(point1, point2, point3, MtlToMaterial(loadResult.Groups[i].Material)));
+                    for (int k = 0; k < face.Count-1; k++)
+                    {
+                        Vertex point = loadResult.Vertices[face[k].VertexIndex - 1];
+                        triangles.Add(new Triangle(ObjectLoader.VertexToVector3(loadResult.Vertices[face[0].VertexIndex - 1]), 
+                            ObjectLoader.VertexToVector3(loadResult.Vertices[face[k].VertexIndex - 1]), 
+                            ObjectLoader.VertexToVector3(loadResult.Vertices[face[k+1].VertexIndex - 1]), MtlToMaterial(loadResult.Groups[i].Material)));
+                    } 
                 }
             }
             
+
             return triangles.ToArray();
         }
 
@@ -50,8 +59,8 @@ namespace Lighthouse3
 
         private static Material MtlToMaterial(ObjLoader.Loader.Data.Material material)
         {
-            Console.WriteLine(material.DiffuseColor.X);
             return new Material(material.DiffuseColor.X, material.DiffuseColor.Y, material.DiffuseColor.Z, 0);
         }
+
     }
 }

@@ -50,7 +50,7 @@ namespace Lighthouse3
         public void UpdateCamera()
         {
             Vector3 up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
-            Console.WriteLine(up);
+            //Console.WriteLine(up);
             if (Math.Abs(direction.X) == 1f)
             {
                 up = Vector3.UnitY;
@@ -59,7 +59,7 @@ namespace Lighthouse3
             if (direction.Z < 0)
                 up = -up;
             Vector3 left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
-            Console.WriteLine(left);
+            //Console.WriteLine(left);
 
             screenCenter = position + direction * screenDistance;
 

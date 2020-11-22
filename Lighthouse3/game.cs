@@ -24,7 +24,7 @@ namespace Lighthouse3 {
 		{
 			//screen.Clear(0xcc33ff);
 			//small = new Sprite("../../assets/small.png");
-			camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1f).Normalized(), SCREEN_WIDTH, SCREEN_HEIGHT, 1f);
+			camera = new Camera(new Vector3(-50, 20, -10), new Vector3(1, 0, 0).Normalized(), SCREEN_WIDTH, SCREEN_HEIGHT, 1f);
 			scene = Scene.BasicScene();
 			pixels = camera.Frame(scene);
 			screen.SetPixels(pixels);
