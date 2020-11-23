@@ -22,11 +22,11 @@ namespace Lighthouse3
         public static Scene BasicScene()
         {
             Scene scene = new Scene();
-            scene.mainCamera = new Camera(new Vector3(-50, 20, -10), new Vector3(1, 0, 0).Normalized(), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1f);
+            scene.mainCamera = new Camera(new Vector3(-50, 75, -10), new Vector3(1, 0, 0).Normalized(), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1f);
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
-                new PointLight(new Vector3(0, 50, 0), Color.White, 1)
+                new PointLight(new Vector3(20, 75, -10), Color.White, 1)
             };
             Material yellow = Material.Yellow;
             yellow.isCheckerboard = true;
@@ -45,7 +45,8 @@ namespace Lighthouse3
 				//new Sphere(new Vector3(0, 5, 20), 1),
 				//new Sphere(new Vector3(3, 3, 10), 4)
 			};
-            //scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/basic_box.obj")).ToArray();
+            scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/basic_box.obj")).ToArray();
+            //scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/complex_box.obj")).ToArray(); // Same as basic_box but with a torus on top of the red box
 
             return scene;
         }
@@ -57,7 +58,7 @@ namespace Lighthouse3
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
-                new PointLight(new Vector3(0, 5, 0), Color.White, 1)
+                new PointLight(new Vector3(0, 5, 0), Color.White, 100)
             };
             Material checkerboard = Material.Yellow;
             checkerboard.isCheckerboard = true;

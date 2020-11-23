@@ -23,6 +23,16 @@ namespace Lighthouse3 {
 		{
 			//screen.Clear(0xcc33ff);
 			//small = new Sprite("../../assets/small.png");
+			float mult = -20000f;
+			Vector3 white = Color.White;
+			Color4 color = new Color4(white.X, white.Y, white.Z, 1);
+			Console.WriteLine(color);
+			Console.WriteLine(color.ToArgb());
+			color = new Color4(white.X * mult, white.Y * mult, white.Z * mult, 1);
+			Console.WriteLine(color);
+			Console.WriteLine(color.ToArgb());
+
+
 			scene = Scene.MirrorScene();
 			pixels = scene.mainCamera.Frame(scene);
 			screen.SetPixels(pixels);
