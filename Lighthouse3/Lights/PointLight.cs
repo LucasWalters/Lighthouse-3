@@ -30,7 +30,8 @@ namespace Lighthouse3.Lights
             Ray ray = new Ray(intersectionPoint + rayDirection * ray_offset, rayDirection);
             bool occluded = ray.Occluded(scene.primitives, toLight.LengthSquared);
 
-            return occluded ? Color.Black : color;
+            float distance = toLight.LengthSquared;
+            return occluded ? Color.Black : color * intensity / distance;
         }
     }
 }

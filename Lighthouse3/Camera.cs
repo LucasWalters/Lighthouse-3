@@ -82,6 +82,15 @@ namespace Lighthouse3
             return GetPointPos(u, v);
         }
 
+        // Maps pixel position to world position with max 0.5 offset in x or y direction, x = [0, screenWidth), y = [0, screenHeight)
+        public Vector3 GetRandomizedPixelPos(int x, int y)
+        {
+            Random random = new Random();
+            float u = (1f / (screenWidth - 1)) * (x + (float)random.NextDouble() * 0.5f);
+            float v = (1f / (screenHeight - 1)) * (y + (float)random.NextDouble() * 0.5f);
+            return GetPointPos(u, v);
+        }
+
         public Ray GetPointRay(float u, float v)
         {
             Vector3 point = GetPointPos(u, v);
@@ -96,6 +105,18 @@ namespace Lighthouse3
             return new Ray(position, rayDir);
         }
 
+        public Ray[] GetRandomizedPixelRays(int x, int y, int rayCount)
+        {
+            Ray[] rays = new Ray[rayCount];
+            for (int i = 0; i < rayCount; i++)
+            {
+                Vector3 point = GetPixelPos(x, y);
+                Vector3 rayDir = (point - position).Normalized();
+                rays[i] = new Ray(position, rayDir);
+            }
+            return rays;
+        }
+
 
         public int[] Frame(Scene scene)
         {
@@ -104,7 +125,15 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    pixels[x + y * screenWidth] = Color.ToARGB(GetPixelRay(x, y).Trace(scene));
+                    //Ray[] pixelRays = GetRandomizedPixelRays(x, y, 4);
+                    //Vector3 combinedColour = Vector3.Zero;
+                    //for (int i = 0; i < pixelRays.Length; i++)
+                    //{
+                    //    combinedColour += pixelRays[i].Trace(scene);
+                        
+                    //}
+                    //pixels[x + y * screenWidth] = Color.ToARGB(combinedColour / pixelRays.Length);
+                    pixels[x + y * screenWidth] = Color.ToARGB(GetPixelRay(x,y).Trace(scene));
                 }
             }
             return pixels;
