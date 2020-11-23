@@ -17,16 +17,14 @@ namespace Lighthouse3 {
 		public static int SCREEN_HEIGHT = 540;
 		public Surface screen;
 		//Sprite small;
-		Camera camera;
 		Scene scene;
 		int[] pixels;
 		public void Init()
 		{
 			//screen.Clear(0xcc33ff);
 			//small = new Sprite("../../assets/small.png");
-			camera = new Camera(new Vector3(-50, 20, -10), new Vector3(1, 0, 0).Normalized(), SCREEN_WIDTH, SCREEN_HEIGHT, 1f);
-			scene = Scene.BasicScene();
-			pixels = camera.Frame(scene);
+			scene = Scene.MirrorScene();
+			pixels = scene.mainCamera.Frame(scene);
 			screen.SetPixels(pixels);
 		}
 

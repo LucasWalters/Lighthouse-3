@@ -97,8 +97,8 @@ namespace Lighthouse3
         public Ray Reflect(float distance, Vector3 normal)
         {
             Vector3 rOrigin = GetPoint(distance);
-            Vector3 rDirection = direction - 2 * normal * Vector3.Dot(direction, normal);
-            return new Ray(rOrigin, rDirection.Normalized());
+            Vector3 rDirection = direction - 2 * Vector3.Dot(direction, normal) * normal;
+            return new Ray(rOrigin, rDirection);
         }
     }
     public class Intersection

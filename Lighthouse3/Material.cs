@@ -13,6 +13,7 @@ namespace Lighthouse3
         public static Material Yellow = new Material(Color4.Yellow, 0);
         public static Material Green = new Material(Color4.Green, 0);
         public static Material Blue = new Material(Color4.PowderBlue, 0);
+        public static Material Mirror = new Material(Color4.White, 1);
 
 
         public Vector3 color;
