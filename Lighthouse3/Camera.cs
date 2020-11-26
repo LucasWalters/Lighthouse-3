@@ -150,7 +150,7 @@ namespace Lighthouse3
             return pixels;
         }
 
-        public int ColorToPixel(Vector3 color)
+        private int ColorToPixel(Vector3 color)
         {
             if (gammaCorrection)
                 color = color.Sqrt();
