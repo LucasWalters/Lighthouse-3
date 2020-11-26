@@ -18,6 +18,11 @@ namespace Lighthouse3
         public ProjectionType projection;
         //Distance to the screen (focal length)
         public float screenDistance;
+        //Number of rays sent per pixel
+        public int raysPerPixel;
+
+        public bool gammaCorrection = false;
+
         //Horizontal field of view of the camera
         //public float fov;
         //Screen pixels
@@ -34,7 +39,7 @@ namespace Lighthouse3
         Vector3 p2;
         Vector3 screenCenter;
         private Camera() { }
-        public Camera(Vector3 position, Vector3 direction, int width, int height, float screenDistance = 1, ProjectionType projection = ProjectionType.Perspective)
+        public Camera(Vector3 position, Vector3 direction, int width, int height, float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective)
         {
             this.position = position;
             this.direction = direction;
@@ -42,6 +47,7 @@ namespace Lighthouse3
             this.screenHeight = height;
             this.screenDistance = screenDistance;
             this.projection = projection;
+            this.raysPerPixel = raysPerPixel;
 
             UpdateCamera();
         }
@@ -85,9 +91,8 @@ namespace Lighthouse3
         // Maps pixel position to world position with max 0.5 offset in x or y direction, x = [0, screenWidth), y = [0, screenHeight)
         public Vector3 GetRandomizedPixelPos(int x, int y)
         {
-            Random random = new Random();
-            float u = (1f / (screenWidth - 1)) * (x + (float)random.NextDouble() * 0.5f);
-            float v = (1f / (screenHeight - 1)) * (y + (float)random.NextDouble() * 0.5f);
+            float u = (1f / (screenWidth - 1)) * (x - 0.5f + Calc.Random());
+            float v = (1f / (screenHeight - 1)) * (y - 0.5f + Calc.Random());
             return GetPointPos(u, v);
         }
 
@@ -110,13 +115,12 @@ namespace Lighthouse3
             Ray[] rays = new Ray[rayCount];
             for (int i = 0; i < rayCount; i++)
             {
-                Vector3 point = GetPixelPos(x, y);
+                Vector3 point = GetRandomizedPixelPos(x, y);
                 Vector3 rayDir = (point - position).Normalized();
                 rays[i] = new Ray(position, rayDir);
             }
             return rays;
         }
-
 
         public int[] Frame(Scene scene)
         {
@@ -125,18 +129,40 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    //Ray[] pixelRays = GetRandomizedPixelRays(x, y, 4);
-                    //Vector3 combinedColour = Vector3.Zero;
-                    //for (int i = 0; i < pixelRays.Length; i++)
-                    //{
-                    //    combinedColour += pixelRays[i].Trace(scene);
-                        
-                    //}
-                    //pixels[x + y * screenWidth] = Color.ToARGB(combinedColour / pixelRays.Length);
-                    pixels[x + y * screenWidth] = Color.ToARGB(GetPixelRay(x,y).Trace(scene));
+                    if (raysPerPixel > 1)
+                    { 
+                        Ray[] pixelRays = GetRandomizedPixelRays(x, y, raysPerPixel);
+                        Vector3 combinedColour = Vector3.Zero;
+                        for (int i = 0; i < raysPerPixel; i++)
+                        {
+                            combinedColour += pixelRays[i].Trace(scene);
+
+                        }
+                        float divider = 1f / raysPerPixel;
+                        pixels[x + y * screenWidth] = ColorToPixel(combinedColour * divider);
+                    }
+                    else
+                    {
+                        pixels[x + y * screenWidth] = ColorToPixel(GetPixelRay(x, y).Trace(scene));
+                    }
                 }
             }
             return pixels;
         }
+
+        public int ColorToPixel(Vector3 color)
+        {
+            if (gammaCorrection)
+                color = color.Sqrt();
+            
+            color *= 256;
+            int r = Calc.Clamp((int)color.X, 0, 255);
+            int g = Calc.Clamp((int)color.Y, 0, 255);
+            int b = Calc.Clamp((int)color.Z, 0, 255);
+
+            return b + (g << 8) + (r << 16);
+        }
+
+
     }
 }

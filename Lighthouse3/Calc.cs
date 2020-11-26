@@ -7,6 +7,9 @@ namespace Lighthouse3
 {
     public static class Calc
     {
+
+        static Random random = new Random();
+
         //Inverse lerp, maps value to [0, 1] based on min and max values
         public static float ILerp(float min, float max, float at)
         {
@@ -19,6 +22,15 @@ namespace Lighthouse3
         }
 
         public static float Clamp(float value, float min = 0, float max = 1)
+        {
+            if (value < min)
+                return min;
+            if (value > max)
+                return max;
+            return value;
+        }
+
+        public static int Clamp(int value, int min = 0, int max = 1)
         {
             if (value < min)
                 return min;
@@ -55,6 +67,11 @@ namespace Lighthouse3
         {
             return new Vector3(vector[x], vector[y], vector[z]);
         }
+
+        public static float Random()
+        {
+            return (float)random.NextDouble();
+        }
     }
 
     public static class Extensions
@@ -89,6 +106,14 @@ namespace Lighthouse3
             float g = Calc.Max(color.G * scalar, 0);
             float b = Calc.Max(color.B * scalar, 0);
             return new Color4(r, g, b, color.A);
+        }
+
+        public static Vector3 Sqrt(this Vector3 vector)
+        {
+            float x = (float)Math.Sqrt(vector.X);
+            float y = (float)Math.Sqrt(vector.Y);
+            float z = (float)Math.Sqrt(vector.Z);
+            return new Vector3(x, y, z);
         }
     }
 }
