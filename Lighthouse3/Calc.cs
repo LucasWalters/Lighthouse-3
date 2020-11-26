@@ -72,6 +72,9 @@ namespace Lighthouse3
         {
             return (float)random.NextDouble();
         }
+
+
+
     }
 
     public static class Extensions
@@ -115,5 +118,48 @@ namespace Lighthouse3
             float z = (float)Math.Sqrt(vector.Z);
             return new Vector3(x, y, z);
         }
+
+        public static Vector3 RotateX(this Vector3 vector, float angles)
+        {
+            float rad = (float)(Math.PI / 180) * angles;
+            float sin = (float)Math.Sin(rad);
+            float cos = (float)Math.Cos(rad);
+            Matrix4 matrix = new Matrix4(
+                new Vector4(1, 0, 0, 0),
+                new Vector4(0, cos, -sin, 0),
+                new Vector4(0, sin, cos, 0),
+                new Vector4(0, 0, 0, 1)
+            );
+            return Vector3.Transform(vector, matrix);
+        }
+
+        public static Vector3 RotateY(this Vector3 vector, float angles)
+        {
+            float rad = (float)(Math.PI / 180) * angles;
+            float sin = (float)Math.Sin(rad);
+            float cos = (float)Math.Cos(rad);
+            Matrix4 matrix = new Matrix4(
+                new Vector4(cos, 0, sin, 0),
+                new Vector4(0, 1, 0, 0),
+                new Vector4(-sin, 0, cos, 0),
+                new Vector4(0, 0, 0, 1)
+            );
+            return Vector3.Transform(vector, matrix);
+        }
+
+        public static Vector3 RotateZ(this Vector3 vector, float angles)
+        {
+            float rad = (float)(Math.PI / 180) * angles;
+            float sin = (float)Math.Sin(rad);
+            float cos = (float)Math.Cos(rad);
+            Matrix4 matrix = new Matrix4(
+                new Vector4(cos, -sin, 0, 0),
+                new Vector4(sin, cos, 0, 0),
+                new Vector4(0, 0, 1, 0),
+                new Vector4(0, 0, 0, 1)
+            );
+            return Vector3.Transform(vector, matrix);
+        }
+
     }
 }
