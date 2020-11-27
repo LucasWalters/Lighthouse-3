@@ -66,7 +66,7 @@ namespace Lighthouse3
                 up = -up;
             Vector3 left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
             //Console.WriteLine(left);
-
+            
             screenCenter = position + direction * screenDistance;
 
             p0 = screenCenter + up + left;
@@ -163,6 +163,40 @@ namespace Lighthouse3
             return b + (g << 8) + (r << 16);
         }
 
+        public void RotateX(float angle)
+        {
+            angle = angle * (float)Math.PI / 180;
+            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitX, angle);
+            direction = Vector3.Transform(direction, q);
+        }
 
+        public void RotateY(float angle)
+        {
+            angle = angle * (float)Math.PI / 180;
+            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitY, angle);
+            direction = Vector3.Transform(direction, q);
+        }
+
+        public void RotateZ(float angle)
+        {
+            angle = angle * (float)Math.PI / 180;
+            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitZ, angle);
+            direction = Vector3.Transform(direction, q);
+        }
+
+        public void MoveX(float movement)
+        {
+            position.X = position.X + movement;
+        }
+
+        public void MoveY(float movement)
+        {
+            position.Y = position.Y + movement;
+        }
+
+        public void MoveZ(float movement)
+        {
+            position.Z = position.Z + movement;
+        }
     }
 }
