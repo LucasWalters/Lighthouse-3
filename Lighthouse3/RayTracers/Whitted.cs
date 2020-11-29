@@ -115,13 +115,10 @@ namespace Lighthouse3.RayTracers
             if (material.isCheckerboard)
             {
                 Vector3 point = ray.GetPoint(intersection.distance);
-                int x = (int)point.X;
-                if (point.X < 0)
-                    x++;
-                int y = (int)point.Y;
-                if (point.Y < 0)
-                    y++;
-                bool isEven = (x + y) % 2 == 0;
+                int x = (int)Math.Floor(point.X);
+                int y = (int)Math.Floor(point.Y);
+                int z = (int)Math.Floor(point.Z);
+                bool isEven = (x + y + z) % 2 == 0;
                 return (material.color * (isEven ? 1 : 0.5f)) * color;
             }
             return material.color * color;
