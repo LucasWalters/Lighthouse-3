@@ -61,12 +61,14 @@
     <Compile Include="Primitives\Primitive.cs" />
     <Compile Include="Primitives\Triangle.cs" />
     <Compile Include="Ray.cs" />
+    <Compile Include="RayTracers\RayTracer.cs" />
     <Compile Include="Scene.cs" />
     <Compile Include="surface.cs" />
     <Compile Include="template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Material.cs" />
     <Compile Include="Color.cs" />
+    <Compile Include="RayTracers\Whitted.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

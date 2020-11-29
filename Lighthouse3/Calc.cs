@@ -46,6 +46,15 @@ namespace Lighthouse3
             return a;
         }
 
+        public static float MinPositive(float a, float b)
+        {
+            if (a <= 0)
+                return b;
+            if (b <= 0)
+                return a;
+            return Min(a, b);
+        }
+
         public static float Max(float a, float b)
         {
             if (a < b)

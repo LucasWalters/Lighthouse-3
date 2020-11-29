@@ -5,6 +5,7 @@ using System.Collections;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+using Lighthouse3.RayTracers;
 
 namespace Lighthouse3
 {
@@ -21,7 +22,9 @@ namespace Lighthouse3
         //Number of rays sent per pixel
         public int raysPerPixel;
 
-        public bool gammaCorrection = false;
+        public RayTracer rayTracer;
+
+        public bool gammaCorrection;
 
         //Horizontal field of view of the camera
         //public float fov;
@@ -39,15 +42,21 @@ namespace Lighthouse3
         Vector3 p2;
         Vector3 screenCenter;
         private Camera() { }
-        public Camera(Vector3 position, Vector3 direction, int width, int height, float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective)
+        public Camera(Vector3 position, Vector3 direction, int width, int height, 
+            float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective, 
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted)
         {
             this.position = position;
+            if (direction.LengthSquared != 0)
+                direction = direction.Normalized();
             this.direction = direction;
             this.screenWidth = width;
             this.screenHeight = height;
             this.screenDistance = screenDistance;
             this.projection = projection;
             this.raysPerPixel = raysPerPixel;
+            this.gammaCorrection = gammaCorrection;
+            this.rayTracer = rayTracer;
 
             UpdateCamera();
         }
@@ -135,7 +144,8 @@ namespace Lighthouse3
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < raysPerPixel; i++)
                         {
-                            combinedColour += pixelRays[i].Trace(scene);
+                            if (rayTracer == RayTracer.Whitted)
+                                combinedColour += TraceRay(pixelRays[i], scene, false);
 
                         }
                         float divider = 1f / raysPerPixel;
@@ -143,11 +153,19 @@ namespace Lighthouse3
                     }
                     else
                     {
-                        pixels[x + y * screenWidth] = ColorToPixel(GetPixelRay(x, y).Trace(scene));
+                        pixels[x + y * screenWidth] = ColorToPixel(TraceRay(GetPixelRay(x, y), scene, x == 480 && y == 270));
                     }
                 }
             }
             return pixels;
+        }
+
+        private Vector3 TraceRay(Ray ray, Scene scene, bool debug)
+        {
+            if (rayTracer == RayTracer.Whitted)
+                return Whitted.TraceRay(ray, scene, debug: debug);
+
+            return Color.Black;
         }
 
         private int ColorToPixel(Vector3 color)

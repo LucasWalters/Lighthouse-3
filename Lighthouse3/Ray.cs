@@ -8,6 +8,7 @@ namespace Lighthouse3
 {
     public class Ray
     {
+        public const float rayOffset = 0.0005f;
         public Vector3 origin;
         public Vector3 direction;
 
@@ -15,6 +16,8 @@ namespace Lighthouse3
         public Ray(Vector3 startPosition, Vector3 direction)
         {
             this.origin = startPosition;
+            if (direction.LengthSquared != 0)
+                direction = direction.Normalized();
             this.direction = direction;
         }
 
@@ -50,54 +53,41 @@ namespace Lighthouse3
             return false;
         }
 
-        // Returns a color
-        public Vector3 Trace(Scene scene)
-        {
-            Intersection intersection = NearestIntersection(scene.primitives);
-            if (intersection == null)
-                return scene.backgroundColor;
-
-            Vector3 color = Color.Black;
-
-            //Handle diffuse color
-            if (intersection.hit.material.diffuse > 0)
-            {
-                Vector3 illumination = Color.Black;
-                foreach (Light light in scene.lights)
-                {
-                    Vector3 lightColor = light.DirectIllumination(intersection, scene);
-                    illumination = illumination + lightColor;
-                }
-
-                color = illumination * intersection.hit.material.diffuse;
-            }
-
-            //Handle specularity
-            if (intersection.hit.material.specularity > 0)
-            {
-                Ray reflection = Reflect(intersection.distance, intersection.hit.Normal(intersection));
-                color += reflection.Trace(scene) * intersection.hit.material.specularity;
-            }
-            //Render checkerboard pattern
-            if (intersection.hit.material.isCheckerboard)
-            {
-                Vector3 point = GetPoint(intersection.distance);
-                int x = (int)point.X;
-                if (point.X < 0)
-                    x++;
-                int y = (int)point.Y;
-                if (point.Y < 0)
-                    y++;
-                bool isEven = (x + y) % 2 == 0;
-                return (intersection.hit.material.color * (isEven ? 1 : 0.5f)) * color;
-            }
-            return intersection.hit.material.color * color;
-        }
-
         public Ray Reflect(float distance, Vector3 normal)
         {
-            Vector3 rOrigin = GetPoint(distance);
             Vector3 rDirection = direction - 2 * Vector3.Dot(direction, normal) * normal;
+            Vector3 rOrigin = GetPoint(distance) + rDirection * rayOffset;
+            return new Ray(rOrigin, rDirection);
+        }
+
+        // From https://www.flipcode.com/archives/reflection_transmission.pdf
+        // And https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
+        // And http://viclw17.github.io/2018/08/05/raytracing-dielectric-materials/
+        public Ray Refract(float distance, Vector3 normal, float n1, float n2, out float reflectionChance)
+        {
+            float r0 = (n1 - n2) / (n1 + n2);
+            r0 *= r0;
+            float cosX = Vector3.Dot(normal, direction);
+            float eta = n1 / n2;
+            if (n1 > n2)
+            {
+                float inv_eta = n2 / n1;
+                float int_sinT2 = inv_eta * inv_eta * (1f - cosX * cosX);
+                if (int_sinT2 > 1f)
+                {
+                    reflectionChance = 1f;
+                    return null;
+                }
+                cosX = (float)Math.Sqrt(1.0f - int_sinT2);
+            } 
+            else
+            {
+                float sinT2 = eta * eta * (1f - cosX * cosX);
+                cosX = (float)Math.Sqrt(1.0f - sinT2);
+            }
+            Vector3 rDirection = eta * direction - (eta + cosX) * normal;
+            Vector3 rOrigin = GetPoint(distance) + rDirection * rayOffset;
+            reflectionChance = r0 + (1.0f - r0) * (float)Math.Pow(1.0f - cosX, 5.0f);
             return new Ray(rOrigin, rDirection);
         }
     }

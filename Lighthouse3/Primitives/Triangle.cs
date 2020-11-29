@@ -27,7 +27,8 @@ namespace Lighthouse3.Primitives
             Vector3 pvec = Vector3.Cross(ray.direction, v0v2);
             float det = Vector3.Dot(v0v1, pvec);
             // ray and triangle are parallel if det is close to 0
-            if (Math.Abs(det) < kEpsilon) return false;
+            if (Math.Abs(det) < kEpsilon)
+                return false;
 
             float invDet = 1 / det;
 
