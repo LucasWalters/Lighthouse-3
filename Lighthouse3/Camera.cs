@@ -14,6 +14,8 @@ namespace Lighthouse3
         public Vector3 position;
         //View direction of the camera - should be normalized
         public Vector3 direction;
+        public Vector3 up;
+        public Vector3 left;
         //Projection type of camera, perspective is default and orthographic means rays are cast parallel to eachother
         public ProjectionType projection;
         //Distance to the screen (focal length)
@@ -23,8 +25,8 @@ namespace Lighthouse3
 
         public bool gammaCorrection = false;
 
-        //Horizontal field of view of the camera
-        //public float fov;
+        //Diagonal  of the camera
+        public float diagonalLength;
         //Screen pixels
         public int screenWidth;
         public int screenHeight;
@@ -55,7 +57,7 @@ namespace Lighthouse3
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
-            Vector3 up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
+            up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             //Console.WriteLine(up);
             if (Math.Abs(direction.X) == 1f)
             {
@@ -64,7 +66,7 @@ namespace Lighthouse3
             // Make sure up always points up (unless direction is (0, (-)1, 0)
             if (direction.Z < 0)
                 up = -up;
-            Vector3 left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
+            left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
             //Console.WriteLine(left);
             
             screenCenter = position + direction * screenDistance;
@@ -72,6 +74,9 @@ namespace Lighthouse3
             p0 = screenCenter + up + left;
             p1 = screenCenter + up - left;
             p2 = screenCenter - up + left;
+
+            // Update Diagonal Length for FOV
+            diagonalLength = (p2 - p1).Length;
         }
 
         // Maps screen position to world position, u & v = [0, 1]
@@ -186,17 +191,17 @@ namespace Lighthouse3
 
         public void MoveX(float movement)
         {
-            position.X = position.X + movement;
+            position = position + left * movement;
         }
 
         public void MoveY(float movement)
         {
-            position.Y = position.Y + movement;
+            position = position + up * movement;
         }
 
         public void MoveZ(float movement)
         {
-            position.Z = position.Z + movement;
+            position = position + direction * movement;
         }
     }
 }

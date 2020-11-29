@@ -35,10 +35,9 @@ namespace Lighthouse3 {
 		{
             Vector3 initialCameraPos = camera.position;
             Vector3 initialCameraDirection = camera.direction;
-            CheckUserInput();
 
 
-            if (initialCameraPos != camera.position || initialCameraDirection != camera.direction)
+            if (HandleUserInput())
             {
             //    camera.direction = camera.direction.Normalized();
             //    Console.WriteLine(camera.position);
@@ -51,27 +50,33 @@ namespace Lighthouse3 {
 
 		public void Render()
 		{
-			//small.Draw(20, 20, 1f);
+            float diagonal = camera.diagonalLength;
+            float FOV = 2 * ((float)(Math.Atan(camera.diagonalLength / 2 * camera.screenDistance) * (180 / Math.PI)));
+
+            screen.Print("Pos: " + camera.position, 0, 0, 1);
+            screen.Print("Rot: " + camera.direction, 0, 15, 1);
+            screen.Print("FOV: " + FOV, 0, 30, 1);
 			// render stuff over the backbuffer (OpenGL, sprites)
 		}
 
         // Keybindings
-        private void CheckUserInput()
+        private bool HandleUserInput()
         {
+            bool keyPressed = false;
             var keyboard = OpenTK.Input.Keyboard.GetState();
-            if (keyboard[OpenTK.Input.Key.Up]) camera.RotateX(-5);
-            if (keyboard[OpenTK.Input.Key.Down]) camera.RotateX(5);
-            if (keyboard[OpenTK.Input.Key.Left]) camera.RotateY(-5);
-            if (keyboard[OpenTK.Input.Key.Right]) camera.RotateY(5);
-            if (keyboard[OpenTK.Input.Key.W]) camera.MoveY(0.25f);
-            if (keyboard[OpenTK.Input.Key.S]) camera.MoveY(-0.25f);
-            if (keyboard[OpenTK.Input.Key.A]) camera.MoveX(-0.25f);
-            if (keyboard[OpenTK.Input.Key.D]) camera.MoveX(0.25f);
-            if (keyboard[OpenTK.Input.Key.Q]) camera.MoveZ(0.25f);
-            if (keyboard[OpenTK.Input.Key.E]) camera.MoveZ(-0.25f);
-            //if (keyboard[OpenTK.Input.Key.G]) camera.direction -= Vector3.UnitY * 0.1f;
-            //if (keyboard[OpenTK.Input.Key.V]) camera.direction += Vector3.UnitZ * 0.1f;
-            //if (keyboard[OpenTK.Input.Key.B]) camera.direction -= Vector3.UnitZ * 0.1f;
+            if (keyboard[OpenTK.Input.Key.Up]) { camera.RotateX(-5); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.Down]) { camera.RotateX(5); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.Left]) { camera.RotateY(-5); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.Right]) { camera.RotateY(5); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.W]) { camera.MoveY(0.25f); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.S]) { camera.MoveY(-0.25f); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.A]) { camera.MoveX(0.25f); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.D]) { camera.MoveX(-0.25f); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.Q]) { camera.MoveZ(0.25f); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.E]) { camera.MoveZ(-0.25f); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.F]) { camera.screenDistance = Calc.Clamp(camera.screenDistance - 0.25f, 0.25f, 10); keyPressed = true; }
+            if (keyboard[OpenTK.Input.Key.G]) { camera.screenDistance = Calc.Clamp(camera.screenDistance + 0.25f, 0.25f, 10); keyPressed = true; }
+            return keyPressed;
         }
     }
 
