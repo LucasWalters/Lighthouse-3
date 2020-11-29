@@ -14,8 +14,12 @@ namespace Lighthouse3
 
         public static int ToARGB(Vector3 color)
         {
-            //Temporary cast to Color4
-            return new Color4(color.X, color.Y, color.Z, 1).ToArgb();
+            color *= 256;
+            int r = Calc.Clamp((int)color.X, 0, 255);
+            int g = Calc.Clamp((int)color.Y, 0, 255);
+            int b = Calc.Clamp((int)color.Z, 0, 255);
+
+            return b + (g << 8) + (r << 16);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Lighthouse3
 			// called once per frame; app logic
 			var keyboard = OpenTK.Input.Keyboard.GetState();
 			if (keyboard[OpenTK.Input.Key.Escape]) this.Exit();
-            game.Tick();
+            game.Tick(e);
         }
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
@@ -70,7 +70,7 @@ namespace Lighthouse3
 			GL.TexCoord2( 1.0f, 0.0f ); GL.Vertex2(  1.0f,  1.0f );
 			GL.TexCoord2( 0.0f, 0.0f ); GL.Vertex2( -1.0f,  1.0f );
 			GL.End();
-			game.Render();
+			game.Render(e);
 			SwapBuffers();
 		}
 		[STAThread]
@@ -78,8 +78,10 @@ namespace Lighthouse3
 		{ 
 			// entry point
 			using (OpenTKApp app = new OpenTKApp()) 
-			{ 
-				app.Run( 30.0, 0.0 ); 
+			{
+				double fps = 30;
+				//app.VSync = OpenTK.VSyncMode.Off;
+				app.Run(fps, 0); 
 			} 
 		}
 	}

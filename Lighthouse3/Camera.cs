@@ -149,16 +149,14 @@ namespace Lighthouse3
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < raysPerPixel; i++)
                         {
-                            if (rayTracer == RayTracer.Whitted)
-                                combinedColour += TraceRay(pixelRays[i], scene, false);
-
+                            combinedColour += TraceRay(pixelRays[i], scene, false);
                         }
                         float divider = 1f / raysPerPixel;
                         pixels[x + y * screenWidth] = ColorToPixel(combinedColour * divider);
                     }
                     else
                     {
-                        pixels[x + y * screenWidth] = ColorToPixel(TraceRay(GetPixelRay(x, y), scene, x == 480 && y == 270));
+                        pixels[x + y * screenWidth] = ColorToPixel(TraceRay(GetPixelRay(x, y), scene, false /*x == 480 && y == 270*/));
                     }
                 }
             }
@@ -177,13 +175,7 @@ namespace Lighthouse3
         {
             if (gammaCorrection)
                 color = color.Sqrt();
-            
-            color *= 256;
-            int r = Calc.Clamp((int)color.X, 0, 255);
-            int g = Calc.Clamp((int)color.Y, 0, 255);
-            int b = Calc.Clamp((int)color.Z, 0, 255);
-
-            return b + (g << 8) + (r << 16);
+            return Color.ToARGB(color);
         }
 
         public void RotateX(float angle)
