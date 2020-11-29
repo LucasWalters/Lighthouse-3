@@ -37,11 +37,11 @@ namespace Lighthouse3
         public enum ProjectionType { Perspective, Orthographic }
 
         //Top left corner of screen
-        Vector3 p0;
+        Vector3 topLeft;
         //Top right corner of screen
-        Vector3 p1;
+        Vector3 topRight;
         //Bottom left corner of screen
-        Vector3 p2;
+        Vector3 bottomLeft;
         Vector3 screenCenter;
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height, 
@@ -80,18 +80,18 @@ namespace Lighthouse3
             
             screenCenter = position + direction * screenDistance;
 
-            p0 = screenCenter + up + left;
-            p1 = screenCenter + up - left;
-            p2 = screenCenter - up + left;
+            topLeft = screenCenter + up + left;
+            topRight = screenCenter + up - left;
+            bottomLeft = screenCenter - up + left;
 
             // Update Diagonal Length for FOV
-            diagonalLength = (p2 - p1).Length;
+            diagonalLength = (bottomLeft - topRight).Length;
         }
 
         // Maps screen position to world position, u & v = [0, 1]
         public Vector3 GetPointPos(float u, float v)
         {
-            return p0 + u * (p1 - p0) + v * (p2 - p0);
+            return topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
         }
 
         // Maps pixel position to world position, x = [0, screenWidth), y = [0, screenHeight)

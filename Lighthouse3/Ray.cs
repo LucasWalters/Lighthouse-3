@@ -8,7 +8,6 @@ namespace Lighthouse3
 {
     public class Ray
     {
-        public const float rayOffset = 0.0005f;
         public Vector3 origin;
         public Vector3 direction;
 
@@ -56,7 +55,7 @@ namespace Lighthouse3
         public Ray Reflect(float distance, Vector3 normal)
         {
             Vector3 rDirection = direction - 2 * Vector3.Dot(direction, normal) * normal;
-            Vector3 rOrigin = GetPoint(distance) + rDirection * rayOffset;
+            Vector3 rOrigin = GetPoint(distance) + rDirection * Calc.Epsilon;
             return new Ray(rOrigin, rDirection);
         }
 
@@ -86,7 +85,7 @@ namespace Lighthouse3
                 cosX = (float)Math.Sqrt(1.0f - sinT2);
             }
             Vector3 rDirection = eta * direction - (eta + cosX) * normal;
-            Vector3 rOrigin = GetPoint(distance) + rDirection * rayOffset;
+            Vector3 rOrigin = GetPoint(distance) + rDirection * Calc.Epsilon;
             reflectionChance = r0 + (1.0f - r0) * (float)Math.Pow(1.0f - cosX, 5.0f);
             return new Ray(rOrigin, rDirection);
         }

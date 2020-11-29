@@ -9,7 +9,6 @@ namespace Lighthouse3.Primitives
 {
     public class Plane : Primitive
     {
-        public static readonly float parallel_margin = 0.000001f;
         public Vector3 position;
         public Vector3 normal;
 

@@ -9,6 +9,17 @@ namespace Lighthouse3
     {
 
         static Random random = new Random();
+        public static float Epsilon = 0.0005f;
+        public static float InvPi 
+        { 
+            get 
+            {
+                if (invPi == 0f)
+                    invPi = 1f / (float)Math.PI;
+                return invPi;
+            }
+        }
+        private static float invPi;
 
         //Inverse lerp, maps value to [0, 1] based on min and max values
         public static float ILerp(float min, float max, float at)

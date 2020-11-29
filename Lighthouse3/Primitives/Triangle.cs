@@ -6,7 +6,6 @@ namespace Lighthouse3.Primitives
 {
     public class Triangle : Primitive
     {
-        private static readonly float kEpsilon = 0.0005f;
         public Vector3 p0;
         public Vector3 p1;
         public Vector3 p2;
@@ -27,7 +26,7 @@ namespace Lighthouse3.Primitives
             Vector3 pvec = Vector3.Cross(ray.direction, v0v2);
             float det = Vector3.Dot(v0v1, pvec);
             // ray and triangle are parallel if det is close to 0
-            if (Math.Abs(det) < kEpsilon)
+            if (Math.Abs(det) < Calc.Epsilon)
                 return false;
 
             float invDet = 1 / det;

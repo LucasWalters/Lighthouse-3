@@ -9,7 +9,6 @@ namespace Lighthouse3.RayTracers
 {
     public static class Whitted
     {
-        public const float epsilon = 0.0005f;
         public const int MaxDepth = 10;
 
         // Returns a color
@@ -90,7 +89,7 @@ namespace Lighthouse3.RayTracers
                     reflectionChance = 1;
                     refractionChance = 0;
                 } 
-                else if (backface || reflectionChance < epsilon)
+                else if (backface || reflectionChance < Calc.Epsilon)
                 {
                     //Either backface or reflection chance too low, just ignore
                     reflectionChance = 0;

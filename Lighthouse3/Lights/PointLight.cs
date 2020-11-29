@@ -10,7 +10,6 @@ namespace Lighthouse3.Lights
 {
     public class PointLight : Light
     {
-        public const float rayOffset = 0.0005f;
         public Vector3 position;
         public PointLight(Vector3 position, Vector3 color, float intensity) : base(color, intensity)
         {
@@ -27,7 +26,7 @@ namespace Lighthouse3.Lights
                 return Vector3.Zero;
             //Check if light is obstructed
             Vector3 rayDirection = toLight.Normalized();
-            Ray ray = new Ray(intersectionPoint + rayDirection * rayOffset, rayDirection);
+            Ray ray = new Ray(intersectionPoint + rayDirection * Calc.Epsilon, rayDirection);
             bool occluded = ray.Occluded(scene.primitives, toLight.LengthSquared);
             if (occluded)
                 return Color.Black;
