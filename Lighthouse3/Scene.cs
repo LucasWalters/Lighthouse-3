@@ -103,7 +103,7 @@ namespace Lighthouse3
             {
                 //new PointLight(new Vector3(2, 3, 0), Color.White, 700)
                 
-                new AreaLight(new Vector3(-1,0,1), new Vector3(-1,-1,1), new Vector3(1,0,1),  Color.White, 100)
+                new AreaLight(new Vector3(-1,0,1), new Vector3(-1,-1,1), new Vector3(1,0,1),  Color.White, 10)
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;

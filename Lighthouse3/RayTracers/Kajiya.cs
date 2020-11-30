@@ -10,7 +10,7 @@ namespace Lighthouse3.RayTracers
     public static class Kajiya
     {
 
-        public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
+        public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false, int rayCount = 10)
         {
             Intersection intersection = ray.NearestIntersection(scene.primitives);
             Material material = intersection.hit.material;
@@ -28,8 +28,10 @@ namespace Lighthouse3.RayTracers
             if (material.diffuse > 0)
             {
                 Vector3 illumination = Color.Black;
-                foreach (Light light in scene.lights)
+                for (int i = 0; i < rayCount; i++) 
                 {
+                    // Select a light at random (not taking into account relative light importance)
+                    Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
                     Vector3 lightColor = light.DirectIllumination(intersection, normal, scene);
                     illumination = illumination + lightColor;
                 }
