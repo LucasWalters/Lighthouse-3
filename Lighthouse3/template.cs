@@ -26,7 +26,14 @@ namespace Lighthouse3
 			screenID = game.screen.GenTexture();
 			game.Init();
 		}
-		protected override void OnUnload(EventArgs e)
+
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            base.OnMouseDown(e);
+            game.DebugRay(e.X, e.Y);
+        }
+
+        protected override void OnUnload(EventArgs e)
 		{
 			// called upon app close
 			GL.DeleteTextures( 1, ref screenID );
