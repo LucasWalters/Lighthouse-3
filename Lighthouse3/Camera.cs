@@ -139,6 +139,7 @@ namespace Lighthouse3
         public int[] Frame(Scene scene)
         {
             int[] pixels = new int[screenWidth * screenHeight];
+            float divider = 1f / raysPerPixel;
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
@@ -151,7 +152,6 @@ namespace Lighthouse3
                         {
                             combinedColour += TraceRay(pixelRays[i], scene);
                         }
-                        float divider = 1f / raysPerPixel;
                         pixels[x + y * screenWidth] = ColorToPixel(combinedColour * divider);
                     }
                     else

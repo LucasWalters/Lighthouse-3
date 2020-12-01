@@ -9,10 +9,24 @@ namespace Lighthouse3.RayTracers
 {
     public static class Kajiya
     {
+        public const int MaxDepth = 10;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
         {
+
+            if (depth > MaxDepth)
+            {
+                if (debug)
+                    Console.WriteLine("Max reached!");
+                return Color.White;
+            }
+
+
             Intersection intersection = ray.NearestIntersection(scene.primitives);
+            if (intersection == null)
+                return scene.backgroundColor;
+
+
             Material material = intersection.hit.material;
             Vector3 normal = intersection.hit.Normal(intersection);
             Vector3 color = Color.Black;
@@ -24,6 +38,19 @@ namespace Lighthouse3.RayTracers
                 backface = true;
             }
 
+            if (debug)
+            {
+                Console.WriteLine("====");
+                Console.WriteLine("Ray direction: " + intersection.ray.direction);
+                if (intersection.hit is Primitives.Sphere)
+                    Console.WriteLine("Sphere hit: " + ((Primitives.Sphere)intersection.hit).radius);
+                if (intersection.hit is Primitives.Plane)
+                    Console.WriteLine("Plane hit: " + ((Primitives.Plane)intersection.hit).position);
+                Console.WriteLine("Hit location: " + intersection.ray.GetPoint(intersection.distance));
+                Console.WriteLine("DEPTH " + depth + " LAST INDEX: " + lastRefractiveIndex + " CURRENT INDEX: " + currentRefractiveIndex + " NEW INDEX: " + material.refractiveIndex + " BACKFACE: " + backface);
+
+            }
+
             float materialTypeRandom = Calc.Random();
 
             //Handle diffuse color
@@ -31,7 +58,13 @@ namespace Lighthouse3.RayTracers
             {
                 // Select a light at random (not taking into account relative light importance)
                 Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
-                Vector3 lightColor = light.DirectIllumination(intersection, normal, scene) * scene.lights.Length;
+                if (debug)
+                {
+                    Console.WriteLine(light.DirectIllumination(intersection, normal, scene, debug));
+                    Console.WriteLine(material.color);
+
+                }
+                Vector3 lightColor = light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
 
                 color = lightColor;
             }
@@ -86,20 +119,7 @@ namespace Lighthouse3.RayTracers
                 color *= (isEven ? 1 : 0.5f);
             }
 
-            if (debug)
-            {
-                Console.WriteLine("====");
-                Console.WriteLine("Ray direction: " + intersection.ray.direction);
-                if (intersection.hit is Primitives.Sphere)
-                    Console.WriteLine("Sphere hit: " + ((Primitives.Sphere)intersection.hit).radius);
-                if (intersection.hit is Primitives.Plane)
-                    Console.WriteLine("Plane hit: " + ((Primitives.Plane)intersection.hit).position);
-                Console.WriteLine("Hit location: " + intersection.ray.GetPoint(intersection.distance));
-                Console.WriteLine("DEPTH " + depth + " LAST INDEX: " + lastRefractiveIndex + " CURRENT INDEX: " + currentRefractiveIndex + " NEW INDEX: " + material.refractiveIndex + " BACKFACE: " + backface);
-
-            }
-
-            return color;
+            return material.color * color;
         }
     }
 }

@@ -14,6 +14,6 @@ namespace Lighthouse3
             this.intensity = intensity;
         }
 
-        public abstract Vector3 DirectIllumination(Intersection intersection, Vector3 normal, Scene scene);
+        public abstract Vector3 DirectIllumination(Intersection intersection, Vector3 normal, Scene scene, bool debug = false);
     }
 }

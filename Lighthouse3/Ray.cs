@@ -40,7 +40,19 @@ namespace Lighthouse3
             return intersection;
         }
 
-        public bool Occluded(Primitive[] primitives, float distanceSquared)
+        public bool Occluded(Primitive[] primitives, float distance)
+        {
+            foreach (Primitive primitive in primitives)
+            {
+                float t;
+                bool intersected = primitive.Intersect(this, out t);
+                if (intersected && t < distance)
+                    return true;
+            }
+            return false;
+        }
+
+        public bool OccludedSquared(Primitive[] primitives, float distanceSquared)
         {
             foreach (Primitive primitive in primitives)
             {

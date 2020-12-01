@@ -10,10 +10,10 @@ namespace Lighthouse3
 
         //Statics
         public static Material Black = new Material(Color4.Black, 0);
-        public static Material Red = new Material(Color4.Red, 0);
-        public static Material Yellow = new Material(Color4.Yellow, 0);
-        public static Material Green = new Material(Color4.Green, 0);
-        public static Material Blue = new Material(Color4.Blue, 0);
+        public static Material Red = new Material(Color4.MediumVioletRed, 0);
+        public static Material Yellow = new Material(Color4.YellowGreen, 0);
+        public static Material Green = new Material(Color4.DarkOliveGreen, 0);
+        public static Material Blue = new Material(Color4.BlueViolet, 0);
         public static Material Mirror = new Material(Color4.White, 1);
         public static Material Glass = new Material(Color4.White, 0, 1, Material.RefractiveIndex.Glass);
         public static Material Vacuum = new Material(Color4.White, 0, 1, Material.RefractiveIndex.Vacuum);

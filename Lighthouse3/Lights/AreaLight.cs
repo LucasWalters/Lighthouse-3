@@ -34,10 +34,11 @@ namespace Lighthouse3.Lights
             return topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
         }
 
-        public override Vector3 DirectIllumination(Intersection intersection, Vector3 normal, Scene scene)
+        public override Vector3 DirectIllumination(Intersection intersection, Vector3 normal, Scene scene, bool debug = false)
         {
             Vector3 intersectionPoint = intersection.ray.GetPoint(intersection.distance);
-            Vector3 toLight = RandomPointOnLight() - intersectionPoint;
+            Vector3 randomPoint = RandomPointOnLight();
+            Vector3 toLight = randomPoint - intersectionPoint;
             float dist = toLight.Length;
             toLight /= dist;
             float cos_o = Vector3.Dot(-toLight, lightNormal);
@@ -47,7 +48,7 @@ namespace Lighthouse3.Lights
 
             // light is not behind surface point, trace shadow ray
             Ray ray = new Ray(intersectionPoint + Calc.Epsilon * toLight, toLight);
-            bool occluded = ray.Occluded(scene.primitives, toLight.LengthSquared - Calc.Epsilon * 2);
+            bool occluded = ray.Occluded(scene.primitives, dist - Calc.Epsilon * 2);
             if (occluded)
                 return Color.Black;
 
