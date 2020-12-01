@@ -97,7 +97,7 @@ namespace Lighthouse3
         public static Scene SphereScene()
         {
             Scene scene = new Scene();
-            scene.mainCamera = new Camera(new Vector3(0, 0, -7), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya);
+            scene.mainCamera = new Camera(new Vector3(0, 0, -5), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya);
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
