@@ -78,7 +78,7 @@ namespace Lighthouse3 {
             }
 
             float diagonal = camera.diagonalLength;
-            float FOV = 2 * ((float)(Math.Atan(camera.diagonalLength / 2 * camera.screenDistance) * (180 / Math.PI)));
+            float FOV = 2 * ((float)(Math.Atan(camera.diagonalLength / (2 * camera.screenDistance)) * (180 / Math.PI)));
             screen.Bar(0, 0, 300, 60, Color.ToARGB(Color.White));
             screen.Print("FPS: " + fps, 0, 0, 1);
             screen.Print("Pos: " + camera.position, 0, 15, 1);
