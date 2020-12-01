@@ -43,6 +43,10 @@ namespace Lighthouse3
         //Bottom left corner of screen
         Vector3 bottomLeft;
         Vector3 screenCenter;
+
+        Vector3[] pixelColors;
+        int frames = 0;
+
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height, 
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective, 
@@ -75,6 +79,9 @@ namespace Lighthouse3
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
+            pixelColors = new Vector3[screenWidth * screenHeight];
+            frames = 0;
+
             left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
             //Console.WriteLine(left);
             
@@ -139,7 +146,9 @@ namespace Lighthouse3
         public int[] Frame(Scene scene)
         {
             int[] pixels = new int[screenWidth * screenHeight];
-            float divider = 1f / raysPerPixel;
+            frames++;
+            float raysDivider = 1f / raysPerPixel;
+            float framesDivider = 1f / frames;
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
@@ -152,12 +161,13 @@ namespace Lighthouse3
                         {
                             combinedColour += TraceRay(pixelRays[i], scene);
                         }
-                        pixels[x + y * screenWidth] = ColorToPixel(combinedColour * divider);
+                        pixelColors[x + y * screenWidth] += combinedColour * raysDivider;
                     }
                     else
                     {
-                        pixels[x + y * screenWidth] = ColorToPixel(TraceRay(GetPixelRay(x, y), scene));
+                        pixelColors[x + y * screenWidth] += TraceRay(GetPixelRay(x, y), scene);
                     }
+                    pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
                 }
             }
             return pixels;
@@ -165,6 +175,7 @@ namespace Lighthouse3
 
         public int DebugRay(Scene scene, int x, int y)
         {
+            Vector3 color = pixelColors[x + y * screenWidth];
             if (raysPerPixel > 1)
             {
                 Ray[] pixelRays = GetRandomizedPixelRays(x, y, raysPerPixel);
@@ -174,12 +185,14 @@ namespace Lighthouse3
                     combinedColour += TraceRay(pixelRays[i], scene, true);
                 }
                 float divider = 1f / raysPerPixel;
-                return ColorToPixel(combinedColour * divider);
+                color += combinedColour* divider;
             }
             else
             {
-                return ColorToPixel(TraceRay(GetPixelRay(x, y), scene, true));
+                color += TraceRay(GetPixelRay(x, y), scene, true);
             }
+            color /= frames + 1;
+            return ColorToPixel(color);
         }
 
         private Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)

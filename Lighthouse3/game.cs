@@ -65,16 +65,18 @@ namespace Lighthouse3 {
 
 		public void Render(FrameEventArgs e)
         {
-            if (renderFrame)
-            {
-                pixels = camera.Frame(scene);
-                renderFrame = false;
-            }
-            if (updateFrame)
-            {
-                screen.SetPixels(pixels);
-                updateFrame = false;
-            }
+            pixels = camera.Frame(scene);
+            screen.SetPixels(pixels);
+            //if (renderFrame)
+            //{
+            //    pixels = camera.Frame(scene);
+            //    renderFrame = false;
+            //}
+            //if (updateFrame)
+            //{
+            //    screen.SetPixels(pixels);
+            //    updateFrame = false;
+            //}
             if (!showStats)
                 return;
 

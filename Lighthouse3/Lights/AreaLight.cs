@@ -53,10 +53,9 @@ namespace Lighthouse3.Lights
                 return Color.Black;
 
             // light is visible (V(p,p’)=1); calculate transport
-            Vector3 BRDF = intersection.hit.material.color * Calc.InvPi;
             float solidAngle = (cos_o * area) / (dist * dist);
             // Multiply result with the number of lights in the scene
-            return BRDF * color * solidAngle * cos_i * intensity;
+            return Calc.InvPi * color * solidAngle * cos_i * intensity;
         }
     }
 }

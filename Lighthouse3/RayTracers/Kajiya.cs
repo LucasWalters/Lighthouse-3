@@ -9,7 +9,7 @@ namespace Lighthouse3.RayTracers
 {
     public static class Kajiya
     {
-        public const int MaxDepth = 10;
+        public const int MaxDepth = 5;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
         {
@@ -26,8 +26,11 @@ namespace Lighthouse3.RayTracers
             if (intersection == null)
                 return scene.backgroundColor;
 
-
             Material material = intersection.hit.material;
+
+            if (material.emissive)
+                return material.color;
+
             Vector3 normal = intersection.hit.Normal(intersection);
             Vector3 color = Color.Black;
 
@@ -57,16 +60,26 @@ namespace Lighthouse3.RayTracers
             if (materialTypeRandom < material.diffuse)
             {
                 // Select a light at random (not taking into account relative light importance)
-                Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
-                if (debug)
-                {
-                    Console.WriteLine(light.DirectIllumination(intersection, normal, scene, debug));
-                    Console.WriteLine(material.color);
+                //Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
+                //if (debug)
+                //{
+                //    Console.WriteLine(light.DirectIllumination(intersection, normal, scene, debug));
+                //    Console.WriteLine(material.color);
 
-                }
-                Vector3 lightColor = light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
+                //}
+                //Vector3 lightColor = light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
+                
 
-                color = lightColor;
+                Vector3 randomDirection = Calc.RandomOnUnitSphere();
+                randomDirection *= (Vector3.Dot(normal, randomDirection) < 0 ? -1 : 1);
+
+                Vector3 point = ray.GetPoint(intersection.distance);
+                Ray reflection = new Ray(point + randomDirection * Calc.Epsilon, randomDirection);
+
+                Vector3 reflectionColor = TraceRay(reflection, scene, depth + 1, debug: debug) * Vector3.Dot(normal, randomDirection);
+
+
+                color = /*lightColor **/ 2f * reflectionColor;
             }
 
             //Handle specularity

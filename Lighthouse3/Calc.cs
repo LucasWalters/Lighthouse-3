@@ -20,6 +20,16 @@ namespace Lighthouse3
             }
         }
         private static float invPi;
+        public static float Pi
+        {
+            get
+            {
+                if (pi == 0f)
+                    pi = (float)Math.PI;
+                return pi;
+            }
+        }
+        private static float pi;
 
         //Inverse lerp, maps value to [0, 1] based on min and max values
         public static float ILerp(float min, float max, float at)
@@ -112,23 +122,6 @@ namespace Lighthouse3
         {
             return new Vector3(Random() * 2f - 1f, Random() * 2f - 1f, Random() * 2f - 1f);
         }
-
-        //Half sphere where y is always positive
-        public static Vector3 RandomOnUnitHalfSphere()
-        {
-            Vector3 point;
-            do
-            {
-                point = RandomInUnitHalfCube();
-            } while (point.LengthSquared <= 1);
-            return point.Normalized();
-        }
-
-        public static Vector3 RandomInUnitHalfCube()
-        {
-            return new Vector3(Random() * 2f - 1f, Random(), Random() * 2f - 1f);
-        }
-
     }
 
     public static class Extensions
