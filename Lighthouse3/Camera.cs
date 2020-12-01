@@ -46,7 +46,7 @@ namespace Lighthouse3
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height, 
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective, 
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted)
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Kajiya)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -167,7 +167,8 @@ namespace Lighthouse3
         {
             if (rayTracer == RayTracer.Whitted)
                 return Whitted.TraceRay(ray, scene, debug: debug);
-
+            if (rayTracer == RayTracer.Kajiya)
+                return Kajiya.TraceRay(ray, scene, debug: debug);
             return Color.Black;
         }
 

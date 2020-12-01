@@ -93,7 +93,10 @@ namespace Lighthouse3
             return (float)random.NextDouble();
         }
 
-
+        public static int RandomInt(int min, int max)
+        {
+            return random.Next(min, max);
+        }
 
     }
 
