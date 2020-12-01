@@ -46,7 +46,7 @@ namespace Lighthouse3
             {
                 float t;
                 bool intersected = primitive.Intersect(this, out t);
-                if (intersected && t < distance)
+                if (intersected && t > Calc.Epsilon && t < distance)
                     return true;
             }
             return false;
@@ -58,10 +58,26 @@ namespace Lighthouse3
             {
                 float t;
                 bool intersected = primitive.Intersect(this, out t);
-                if (intersected && t*t < distanceSquared)
+                if (intersected && t > Calc.Epsilon && t * t < distanceSquared)
                     return true;
             }
             return false;
+        }
+
+        public Ray GlossyReflect(float distance, Vector3 normal, float glossiness)
+        {
+            Ray reflection = Reflect(distance, normal);
+            if (glossiness > 0)
+            {
+                Vector3 randomDirection = (reflection.direction + Calc.RandomInUnitSphere() * glossiness * Vector3.Dot(reflection.direction, normal)).Normalized();
+
+
+               // Console.WriteLine("Old: " + reflection.direction);
+                reflection.direction = randomDirection;
+                //Console.WriteLine("New: " + reflection.direction);
+            }
+            return reflection;
+
         }
 
         public Ray Reflect(float distance, Vector3 normal)

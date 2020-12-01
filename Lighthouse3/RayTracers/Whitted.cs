@@ -71,7 +71,7 @@ namespace Lighthouse3.RayTracers
             }
 
             //Handle transparancy
-            if (material.transparancy > 0)
+            if (material.transparency > 0)
             {
                 // Refract the ray to either go into the material or come out of the material
                 Ray refraction;
@@ -105,7 +105,7 @@ namespace Lighthouse3.RayTracers
                     refractionColor += TraceRay(reflection, scene, depth + 1, debug: debug) * reflectionChance;
                 }
 
-                color += refractionColor * material.transparancy;
+                color += refractionColor * material.transparency;
             }
 
             //Render checkerboard pattern

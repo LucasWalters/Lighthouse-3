@@ -9,17 +9,10 @@ namespace Lighthouse3.RayTracers
 {
     public static class Kajiya
     {
-        public const int MaxDepth = 5;
+        public const int MaxDepth = 4;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
         {
-
-            if (depth > MaxDepth)
-            {
-                if (debug)
-                    Console.WriteLine("Max reached!");
-                return Color.White;
-            }
 
 
             Intersection intersection = ray.NearestIntersection(scene.primitives);
@@ -31,7 +24,22 @@ namespace Lighthouse3.RayTracers
             if (material.emissive)
                 return material.color;
 
+
             Vector3 normal = intersection.hit.Normal(intersection);
+
+            if (depth > MaxDepth)
+            {
+                if (debug)
+                    Console.WriteLine("Max reached!");
+
+                if (material.diffuse > 0)
+                {
+                    Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
+                    return material.color * light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
+                }
+                return Color.White;
+            }
+
             Vector3 color = Color.Black;
 
             bool backface = false;
@@ -50,7 +58,7 @@ namespace Lighthouse3.RayTracers
                 if (intersection.hit is Primitives.Plane)
                     Console.WriteLine("Plane hit: " + ((Primitives.Plane)intersection.hit).position);
                 Console.WriteLine("Hit location: " + intersection.ray.GetPoint(intersection.distance));
-                Console.WriteLine("DEPTH " + depth + " LAST INDEX: " + lastRefractiveIndex + " CURRENT INDEX: " + currentRefractiveIndex + " NEW INDEX: " + material.refractiveIndex + " BACKFACE: " + backface);
+                Console.WriteLine("DEPTH " + depth + " GLOSSY: " + material.glossiness + " CURRENT INDEX: " + currentRefractiveIndex + " NEW INDEX: " + material.refractiveIndex + " BACKFACE: " + backface);
 
             }
 
@@ -59,17 +67,6 @@ namespace Lighthouse3.RayTracers
             //Handle diffuse color
             if (materialTypeRandom < material.diffuse)
             {
-                // Select a light at random (not taking into account relative light importance)
-                //Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
-                //if (debug)
-                //{
-                //    Console.WriteLine(light.DirectIllumination(intersection, normal, scene, debug));
-                //    Console.WriteLine(material.color);
-
-                //}
-                //Vector3 lightColor = light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
-                
-
                 Vector3 randomDirection = Calc.RandomOnUnitSphere();
                 randomDirection *= (Vector3.Dot(normal, randomDirection) < 0 ? -1 : 1);
 
@@ -85,7 +82,7 @@ namespace Lighthouse3.RayTracers
             //Handle specularity
             else if(materialTypeRandom < material.specularity + material.diffuse)
             {
-                Ray reflection = ray.Reflect(intersection.distance, normal);
+                Ray reflection = ray.GlossyReflect(intersection.distance, normal, material.glossiness);
                 color += TraceRay(reflection, scene, depth + 1, debug: debug);
             }
 

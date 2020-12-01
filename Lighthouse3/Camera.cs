@@ -34,6 +34,8 @@ namespace Lighthouse3
         public int screenWidth;
         public int screenHeight;
 
+        public bool antiAliasing;
+
         public enum ProjectionType { Perspective, Orthographic }
 
         //Top left corner of screen
@@ -45,12 +47,13 @@ namespace Lighthouse3
         Vector3 screenCenter;
 
         Vector3[] pixelColors;
+        Ray[] rays;
         int frames = 0;
 
         private Camera() { }
-        public Camera(Vector3 position, Vector3 direction, int width, int height, 
-            float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective, 
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted)
+        public Camera(Vector3 position, Vector3 direction, int width, int height,
+            float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -63,6 +66,7 @@ namespace Lighthouse3
             this.raysPerPixel = raysPerPixel;
             this.gammaCorrection = gammaCorrection;
             this.rayTracer = rayTracer;
+            this.antiAliasing = antiAliasing;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             //Console.WriteLine(up);
@@ -131,14 +135,29 @@ namespace Lighthouse3
             return new Ray(position, rayDir);
         }
 
+        public Ray[] GetPixelRays(int x, int y, int rayCount)
+        {
+            Ray[] rays = new Ray[rayCount];
+            for (int i = 0; i < rayCount; i++)
+            {
+                rays[i] = GetPixelRay(x, y);
+            }
+            return rays;
+        }
+
+        public Ray GetRandomizedPixelRay(int x, int y)
+        {
+            Vector3 point = GetRandomizedPixelPos(x, y);
+            Vector3 rayDir = (point - position).Normalized();
+            return new Ray(position, rayDir);
+        }
+
         public Ray[] GetRandomizedPixelRays(int x, int y, int rayCount)
         {
             Ray[] rays = new Ray[rayCount];
             for (int i = 0; i < rayCount; i++)
             {
-                Vector3 point = GetRandomizedPixelPos(x, y);
-                Vector3 rayDir = (point - position).Normalized();
-                rays[i] = new Ray(position, rayDir);
+                rays[i] = GetRandomizedPixelRay(x, y);
             }
             return rays;
         }
@@ -155,7 +174,7 @@ namespace Lighthouse3
                 {
                     if (raysPerPixel > 1)
                     { 
-                        Ray[] pixelRays = GetRandomizedPixelRays(x, y, raysPerPixel);
+                        Ray[] pixelRays = antiAliasing ? GetRandomizedPixelRays(x, y, raysPerPixel) : GetPixelRays(x, y, raysPerPixel);
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < raysPerPixel; i++)
                         {
@@ -165,7 +184,7 @@ namespace Lighthouse3
                     }
                     else
                     {
-                        pixelColors[x + y * screenWidth] += TraceRay(GetPixelRay(x, y), scene);
+                        pixelColors[x + y * screenWidth] += TraceRay(antiAliasing ? GetRandomizedPixelRay(x, y) : GetPixelRay(x, y), scene);
                     }
                     pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
                 }

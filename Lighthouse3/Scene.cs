@@ -54,50 +54,34 @@ namespace Lighthouse3
         public static Scene MirrorScene()
         {
             Scene scene = new Scene();
-            scene.mainCamera = new Camera(new Vector3(0, -5, 18), new Vector3(0, 1, 0), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1);
+            scene.mainCamera = new Camera(new Vector3(0, 0, -5), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya, antiAliasing: true);
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
-                new PointLight(new Vector3(2, -8, 10), Color.White, 1000)
+                //new PointLight(new Vector3(0, 10, -5), Color.White, 500),
+                new AreaLight(new Vector3(3,10,3), new Vector3(-3,10,3), new Vector3(3,10,-3),  Color.White, 0.2f)
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
 
             scene.primitives = new Primitive[]
-            { 
-				//new Sphere(new Vector3(4, 0, 7), 2),
-				//new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
-				new Plane(new Vector3(-20, 0, 0), new Vector3(1, 0, 0), Material.Blue),
-                new Plane(new Vector3(0, 0, 20), new Vector3(0, 0, -1), checkerboard),
+            {
+                new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.Light),
+                new Plane(new Vector3(-20, 0, 0), new Vector3(1, 0, 0), Material.Blue),
+                new Plane(new Vector3(0, -2, 0), new Vector3(0, 1, 0), checkerboard),
                 new Plane(new Vector3(20, 0, 0), new Vector3(-1, 0, 0), Material.Red),
-                new Plane(new Vector3(0, -10, 0), new Vector3(0, 1, 0), Material.Green),
-                //new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.Yellow),
+                new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.Green),
+                new Plane(new Vector3(0, 0, 20), new Vector3(0, 0, -1), Material.Yellow),
 
-
-                new Sphere(new Vector3(0, 0, 18), 2f, Material.Glass),
-                //new Sphere(new Vector3(2, 0, 10), 2f, Material.Blue),
-                //new Sphere(new Vector3(0, 0, 5), 1.9f, Material.Glass, true),
-
-                //new Sphere(new Vector3(0, 0, 5), 2f, Material.Mirror),
-
-                //new Sphere(new Vector3(5, 0, 10), 2f, Material.Glass),
-                //new Sphere(new Vector3(-5, 0, 0), 2f, Material.Blue),
-                //new Sphere(new Vector3(0, 0, 0), 2f, Material.Mirror),
-
-                //new Sphere(new Vector3(0, 0, 5), 3f, new Material(Color.Red, 1))
-                //new Triangle(new Vector3(2, 0, 10), new Vector3(-2, 0, 10), new Vector3(0, 3, 10), red),
-                //new Triangle(new Vector3(-2, 3, 10), new Vector3(-1, 1, 10), new Vector3(1, 2, 10), red)
-				//new Sphere(new Vector3(0, 5, 20), 1),
-				//new Sphere(new Vector3(3, 3, 10), 4)
+                new Sphere(new Vector3(0, 0, 0), 2f, Material.GlossyMirror),
 			};
             return scene;
-
         }
 
         public static Scene SphereScene()
         {
             Scene scene = new Scene();
-            scene.mainCamera = new Camera(new Vector3(0, 0, -3), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya);
+            scene.mainCamera = new Camera(new Vector3(0, 0, -3), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya, antiAliasing: true);
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
@@ -113,7 +97,7 @@ namespace Lighthouse3
 				//new Sphere(new Vector3(4, 0, 7), 2),
 				//new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
 				new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.Blue),
-                new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), checkerboard),
+                new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), Material.Gray),
                 new Plane(new Vector3(0, 5, 0), new Vector3(0, -1, 0), Material.Light),
                 new Plane(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.Red),
                 new Plane(new Vector3(0, -1.1f, 0), new Vector3(0, 1, 0), Material.Green),
@@ -121,7 +105,7 @@ namespace Lighthouse3
 
 
                 new Sphere(new Vector3(2, 0, 3), 1f, Material.Yellow),
-                new Sphere(new Vector3(3, 0, 1), 1f, Material.Mirror),
+                new Sphere(new Vector3(3, 0, 1), 1f, Material.GlossyMirror),
                 new Sphere(new Vector3(-1, 0, 2), 1f, Material.Glass),
                 //new Sphere(new Vector3(0, -3, 7), 2f, Material.Yellow),
 			};

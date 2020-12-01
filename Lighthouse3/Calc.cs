@@ -118,6 +118,16 @@ namespace Lighthouse3
             return point.Normalized();
         }
 
+        public static Vector3 RandomInUnitSphere()
+        {
+            Vector3 point;
+            do
+            {
+                point = RandomInUnitCube();
+            } while (point.LengthSquared <= 1);
+            return point;
+        }
+
         public static Vector3 RandomInUnitCube()
         {
             return new Vector3(Random() * 2f - 1f, Random() * 2f - 1f, Random() * 2f - 1f);
