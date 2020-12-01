@@ -98,6 +98,37 @@ namespace Lighthouse3
             return random.Next(min, max);
         }
 
+        public static Vector3 RandomOnUnitSphere()
+        {
+            Vector3 point;
+            do
+            {
+                point = RandomInUnitCube();
+            } while (point.LengthSquared <= 1);
+            return point.Normalized();
+        }
+
+        public static Vector3 RandomInUnitCube()
+        {
+            return new Vector3(Random() * 2f - 1f, Random() * 2f - 1f, Random() * 2f - 1f);
+        }
+
+        //Half sphere where y is always positive
+        public static Vector3 RandomOnUnitHalfSphere()
+        {
+            Vector3 point;
+            do
+            {
+                point = RandomInUnitHalfCube();
+            } while (point.LengthSquared <= 1);
+            return point.Normalized();
+        }
+
+        public static Vector3 RandomInUnitHalfCube()
+        {
+            return new Vector3(Random() * 2f - 1f, Random(), Random() * 2f - 1f);
+        }
+
     }
 
     public static class Extensions

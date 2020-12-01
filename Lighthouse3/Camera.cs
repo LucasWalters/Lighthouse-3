@@ -46,7 +46,7 @@ namespace Lighthouse3
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height, 
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective, 
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Kajiya)
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -60,12 +60,6 @@ namespace Lighthouse3
             this.gammaCorrection = gammaCorrection;
             this.rayTracer = rayTracer;
 
-            UpdateCamera();
-        }
-
-        //Needs to be called everytime the camera's state changes
-        public void UpdateCamera()
-        {
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             //Console.WriteLine(up);
             if (Math.Abs(direction.X) == 1f)
@@ -75,6 +69,12 @@ namespace Lighthouse3
             // Make sure up always points up (unless direction is (0, (-)1, 0)
             if (direction.Z < 0)
                 up = -up;
+            UpdateCamera();
+        }
+
+        //Needs to be called everytime the camera's state changes
+        public void UpdateCamera()
+        {
             left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
             //Console.WriteLine(left);
             
@@ -182,22 +182,25 @@ namespace Lighthouse3
         public void RotateX(float angle)
         {
             angle = angle * (float)Math.PI / 180;
-            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitX, angle);
+            Quaternion q = Quaternion.FromAxisAngle(-left, angle);
             direction = Vector3.Transform(direction, q);
+            up = Vector3.Transform(up, q);
         }
 
         public void RotateY(float angle)
         {
             angle = angle * (float)Math.PI / 180;
-            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitY, angle);
+            Quaternion q = Quaternion.FromAxisAngle(up, angle);
             direction = Vector3.Transform(direction, q);
+            //up = Vector3.Transform(up, q);
         }
 
         public void RotateZ(float angle)
         {
             angle = angle * (float)Math.PI / 180;
-            Quaternion q = Quaternion.FromAxisAngle(Vector3.UnitZ, angle);
-            direction = Vector3.Transform(direction, q);
+            Quaternion q = Quaternion.FromAxisAngle(direction, angle);
+            //direction = Vector3.Transform(direction, q);
+            up = Vector3.Transform(up, q);
         }
 
         public void MoveX(float movement)

@@ -36,7 +36,7 @@ namespace Lighthouse3 {
             //screen.Clear(0xcc33ff);
             //small = new Sprite("../../assets/small.png");
 
-			scene = Scene.SphereScene();
+			scene = Scene.MirrorScene();
 			pixels = scene.mainCamera.Frame(scene);
 			screen.SetPixels(pixels);
             camera = scene.mainCamera;

@@ -50,7 +50,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AreaLight.cs" />
     <Compile Include="Calc.cs" />
     <Compile Include="game.cs" />
     <Compile Include="Camera.cs" />
