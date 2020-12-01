@@ -36,7 +36,7 @@ namespace Lighthouse3 {
             //screen.Clear(0xcc33ff);
             //small = new Sprite("../../assets/small.png");
 
-			scene = Scene.MirrorScene();
+			scene = Scene.SphereScene();
 			pixels = scene.mainCamera.Frame(scene);
 			screen.SetPixels(pixels);
             camera = scene.mainCamera;
@@ -57,6 +57,11 @@ namespace Lighthouse3 {
                 updateFrame = true;
             }
 		}
+
+        public void DebugRay(int x, int y)
+        {
+            pixels[x + y * SCREEN_WIDTH] = camera.DebugRay(scene, x, y);
+        }
 
 		public void Render(FrameEventArgs e)
         {

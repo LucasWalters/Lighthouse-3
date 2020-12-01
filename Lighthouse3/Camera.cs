@@ -149,21 +149,40 @@ namespace Lighthouse3
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < raysPerPixel; i++)
                         {
-                            combinedColour += TraceRay(pixelRays[i], scene, false);
+                            combinedColour += TraceRay(pixelRays[i], scene);
                         }
                         float divider = 1f / raysPerPixel;
                         pixels[x + y * screenWidth] = ColorToPixel(combinedColour * divider);
                     }
                     else
                     {
-                        pixels[x + y * screenWidth] = ColorToPixel(TraceRay(GetPixelRay(x, y), scene, false /*x == 480 && y == 270*/));
+                        pixels[x + y * screenWidth] = ColorToPixel(TraceRay(GetPixelRay(x, y), scene));
                     }
                 }
             }
             return pixels;
         }
 
-        private Vector3 TraceRay(Ray ray, Scene scene, bool debug)
+        public int DebugRay(Scene scene, int x, int y)
+        {
+            if (raysPerPixel > 1)
+            {
+                Ray[] pixelRays = GetRandomizedPixelRays(x, y, raysPerPixel);
+                Vector3 combinedColour = Vector3.Zero;
+                for (int i = 0; i < raysPerPixel; i++)
+                {
+                    combinedColour += TraceRay(pixelRays[i], scene, true);
+                }
+                float divider = 1f / raysPerPixel;
+                return ColorToPixel(combinedColour * divider);
+            }
+            else
+            {
+                return ColorToPixel(TraceRay(GetPixelRay(x, y), scene, true));
+            }
+        }
+
+        private Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
         {
             if (rayTracer == RayTracer.Whitted)
                 return Whitted.TraceRay(ray, scene, debug: debug);

@@ -97,13 +97,13 @@ namespace Lighthouse3
         public static Scene SphereScene()
         {
             Scene scene = new Scene();
-            scene.mainCamera = new Camera(new Vector3(0, 0, -7), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1);
+            scene.mainCamera = new Camera(new Vector3(0, 0, -7), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya);
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
-                new PointLight(new Vector3(0, 3, 0), Color.White, 10)
+                //new PointLight(new Vector3(0, 3, 0), Color.White, 10)
                 
-                //new AreaLight(new Vector3(1,3,1), new Vector3(-1,3,1), new Vector3(1,3,-1),  Color.White, 10)
+                new AreaLight(new Vector3(1,3,1), new Vector3(-1,3,1), new Vector3(1,3,-1),  Color.White, 10)
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
