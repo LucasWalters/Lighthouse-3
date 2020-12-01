@@ -44,7 +44,7 @@ namespace Lighthouse3.RayTracers
                 foreach (Light light in scene.lights)
                 {
                     Vector3 lightColor = light.DirectIllumination(intersection, normal, scene);
-                    illumination = illumination + lightColor;
+                    illumination += lightColor;
                 }
 
                 color = illumination * material.diffuse;
@@ -80,8 +80,6 @@ namespace Lighthouse3.RayTracers
                 refraction = ray.Refract(intersection.distance, normal, currentRefractiveIndex, backface ? lastRefractiveIndex : material.refractiveIndex, out reflectionChance);
 
                 float refractionChance = (1 - reflectionChance);
-                if (debug)
-                    Console.WriteLine(reflectionChance);
 
                 if (refraction == null)
                 {

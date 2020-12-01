@@ -54,6 +54,7 @@
     <Compile Include="game.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Lights\Light.cs" />
+    <Compile Include="Lights\AreaLight.cs" />
     <Compile Include="Lights\PointLight.cs" />
     <Compile Include="ObjectLoader.cs" />
     <Compile Include="Primitives\Plane.cs" />
