@@ -28,9 +28,6 @@ namespace Lighthouse3 {
         float timePassed = 0f;
 
         bool showStats = true;
-
-        bool updateFrame = false;
-        bool renderFrame = false;
 		public void Init()
 		{
             //screen.Clear(0xcc33ff);
@@ -99,9 +96,10 @@ namespace Lighthouse3 {
             if (keyboard[Key.D]) { camera.MoveX(-moveSpeed * deltaTime); keyPressed = true; }
             if (keyboard[Key.Q]) { camera.MoveY(moveSpeed * deltaTime); keyPressed = true; }
             if (keyboard[Key.E]) { camera.MoveY(-moveSpeed * deltaTime); keyPressed = true; }
-            if (keyboard[Key.F]) { camera.screenDistance = Calc.Clamp(camera.screenDistance - 0.25f, 0.25f, 10); keyPressed = true; }
-            if (keyboard[Key.G]) { camera.screenDistance = Calc.Clamp(camera.screenDistance + 0.25f, 0.25f, 10); keyPressed = true; }
-            if (keyboard.IsKeyDown(Key.H)) { showStats = !showStats; updateFrame = true; }
+            if (keyboard[Key.F]) { camera.screenDistance = Calc.Clamp(camera.screenDistance - 0.5f * deltaTime, 0.25f, 10); keyPressed = true; }
+            if (keyboard[Key.G]) { camera.screenDistance = Calc.Clamp(camera.screenDistance + 0.5f * deltaTime, 0.25f, 10); keyPressed = true; }
+            if (keyboard[Key.H]) { showStats = false; }
+            if (keyboard[Key.J]) { showStats = true; }
             return keyPressed;
         }
     }
