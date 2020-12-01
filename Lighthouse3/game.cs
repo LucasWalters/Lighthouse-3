@@ -103,7 +103,7 @@ namespace Lighthouse3 {
             var keyboard = Keyboard.GetState();
             if (keyboard[Key.Up]) { camera.RotateX(-rotateSpeed * deltaTime); keyPressed = true; }
             if (keyboard[Key.Down]) { camera.RotateX(rotateSpeed * deltaTime); keyPressed = true; }
-            if (keyboard[Key.Left]) { camera.RotateZ(-rotateSpeed * deltaTime); keyPressed = true; }
+            if (keyboard[Key.Left]) { camera.RotateY(-rotateSpeed * deltaTime); keyPressed = true; }
             if (keyboard[Key.Right]) { camera.RotateY(rotateSpeed * deltaTime); keyPressed = true; }
             if (keyboard[Key.T]) { camera.RotateZ(rotateSpeed * deltaTime); keyPressed = true; }
             if (keyboard[Key.Z]) { camera.RotateZ(rotateSpeed * deltaTime); keyPressed = true; }
