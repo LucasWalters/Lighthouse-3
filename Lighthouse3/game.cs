@@ -31,6 +31,7 @@ namespace Lighthouse3 {
         bool showStats = true;
 
         bool updateFrame = false;
+        bool renderFrame = false;
 		public void Init()
 		{
             //screen.Clear(0xcc33ff);
@@ -50,10 +51,8 @@ namespace Lighthouse3 {
 
             if (HandleUserInput((float)e.Time))
             {
-            //    camera.direction = camera.direction.Normalized();
-            //    Console.WriteLine(camera.position);
-            //    Console.WriteLine(camera.direction);
                 camera.UpdateCamera();
+                renderFrame = true;
                 updateFrame = true;
             }
 		}
@@ -61,13 +60,18 @@ namespace Lighthouse3 {
         public void DebugRay(int x, int y)
         {
             pixels[x + y * SCREEN_WIDTH] = camera.DebugRay(scene, x, y);
+            updateFrame = true;
         }
 
 		public void Render(FrameEventArgs e)
         {
-            if (updateFrame)
+            if (renderFrame)
             {
                 pixels = camera.Frame(scene);
+                renderFrame = false;
+            }
+            if (updateFrame)
+            {
                 screen.SetPixels(pixels);
                 updateFrame = false;
             }
