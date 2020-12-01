@@ -15,14 +15,13 @@ namespace Lighthouse3 {
 	{
 		public static int SCREEN_WIDTH = 960;
 		public static int SCREEN_HEIGHT = 540;
-        public const float moveSpeed = 0.25f;
-        public const float rotateSpeed = 5f;
+        public const float moveSpeed = 1f;
+        public const float rotateSpeed = 25f;
 
         public Surface screen;
         //Sprite small;
         Camera camera;
 		Scene scene;
-		int[] pixels;
 
         int frames = 0;
         float fps = 0f;
@@ -38,45 +37,30 @@ namespace Lighthouse3 {
             //small = new Sprite("../../assets/small.png");
 
 			scene = Scene.MirrorScene();
-			pixels = scene.mainCamera.Frame(scene);
-			screen.SetPixels(pixels);
             camera = scene.mainCamera;
         }
 
 		public void Tick(FrameEventArgs e)
 		{
-            Vector3 initialCameraPos = camera.position;
-            Vector3 initialCameraDirection = camera.direction;
-
-
             if (HandleUserInput((float)e.Time))
             {
                 camera.UpdateCamera();
-                renderFrame = true;
-                updateFrame = true;
             }
 		}
 
         public void DebugRay(int x, int y)
         {
-            pixels[x + y * SCREEN_WIDTH] = camera.DebugRay(scene, x, y);
-            updateFrame = true;
+            camera.DebugRay(scene, x, y);
         }
 
 		public void Render(FrameEventArgs e)
         {
-            pixels = camera.Frame(scene);
-            screen.SetPixels(pixels);
-            //if (renderFrame)
-            //{
-            //    pixels = camera.Frame(scene);
-            //    renderFrame = false;
-            //}
-            //if (updateFrame)
-            //{
-            //    screen.SetPixels(pixels);
-            //    updateFrame = false;
-            //}
+            camera.MultithreadedFrame(scene);
+            if (camera.pixelsChanged)
+            {
+                screen.SetPixels(camera.pixels);
+                camera.pixelsChanged = false;
+            }
             if (!showStats)
                 return;
 

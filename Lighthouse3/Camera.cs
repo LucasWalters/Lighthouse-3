@@ -6,6 +6,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using Lighthouse3.RayTracers;
+using System.Threading;
 
 namespace Lighthouse3
 {
@@ -46,9 +47,15 @@ namespace Lighthouse3
         Vector3 bottomLeft;
         Vector3 screenCenter;
 
-        Vector3[] pixelColors;
-        Ray[] rays;
+        public Vector3[] pixelColors;
+        public int[] pixels;
+        public bool pixelsChanged = false;
+        TracingThread[] threads;
+        int numberOfThreads;
         int frames = 0;
+        int threadsFinished = 0;
+        bool rendering = false;
+        bool resetFrame = true;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
@@ -77,14 +84,29 @@ namespace Lighthouse3
             // Make sure up always points up (unless direction is (0, (-)1, 0)
             if (direction.Z < 0)
                 up = -up;
+
+
+            numberOfThreads = Environment.ProcessorCount - 1;
+            if (numberOfThreads > 0)
+                threads = new TracingThread[numberOfThreads];
+
+
+            pixels = new int[screenWidth * screenHeight];
             UpdateCamera();
         }
 
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
-            pixelColors = new Vector3[screenWidth * screenHeight];
-            frames = 0;
+            //foreach (TracingThread thread in threads)
+            //{
+            //    if (thread != null)
+            //        thread.abort = true;
+            //}
+            //pixelColors = new Vector3[screenWidth * screenHeight];
+            //pixels = new int[screenWidth * screenHeight];
+            //pixelsChanged = false;
+            //frames = 0;
 
             left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
             //Console.WriteLine(left);
@@ -97,6 +119,7 @@ namespace Lighthouse3
 
             // Update Diagonal Length for FOV
             diagonalLength = (bottomLeft - topRight).Length;
+            resetFrame = true;
         }
 
         // Maps screen position to world position, u & v = [0, 1]
@@ -164,10 +187,8 @@ namespace Lighthouse3
 
         public int[] Frame(Scene scene)
         {
-            int[] pixels = new int[screenWidth * screenHeight];
-            frames++;
             float raysDivider = 1f / raysPerPixel;
-            float framesDivider = 1f / frames;
+            float framesDivider = 1f / ++frames;
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
@@ -189,10 +210,57 @@ namespace Lighthouse3
                     pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
                 }
             }
+            //pixelsChanged = true;
             return pixels;
         }
+        public void MultithreadedFrame(Scene scene)
+        {
+            if (numberOfThreads < 2)
+            {
+                Frame(scene);
+                return;
+            }
+            if (rendering)
+                return;
+            rendering = true;
+            if (resetFrame)
+            {
+                pixelColors = new Vector3[screenWidth * screenHeight];
+                frames = 0;
+                resetFrame = false;
+            }
+            threadsFinished = 0;
 
-        public int DebugRay(Scene scene, int x, int y)
+            float framesDivider = 1f / ++frames;
+            int perThread = (int)Math.Floor((float)screenWidth / (float)numberOfThreads);
+            for (int t = 0; t < numberOfThreads; t++)
+            {
+                int start = t * perThread;
+                int end = (t < numberOfThreads - 1) ? start + perThread : screenWidth;
+                int current = t;
+                threads[t] = new TracingThread(this, scene, start, end, (Vector3[] output) =>
+                {
+                    for (int x = start; x < end; x++)
+                    {
+                        for (int y = 0; y < screenHeight; y++)
+                        {
+                            int index = x + y * screenWidth;
+                            pixelColors[index] += output[(x - start) + y * (end - start)];
+                            pixels[index] = ColorToPixel(pixelColors[index] * framesDivider);
+                        }
+                    }
+                    if (++threadsFinished == numberOfThreads)
+                    {
+                        pixelsChanged = true;
+                        rendering = false;
+                    }
+                });
+                Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));
+                th.Start();
+            }
+        }
+
+        public void DebugRay(Scene scene, int x, int y)
         {
             Vector3 color = pixelColors[x + y * screenWidth];
             if (raysPerPixel > 1)
@@ -211,10 +279,11 @@ namespace Lighthouse3
                 color += TraceRay(GetPixelRay(x, y), scene, true);
             }
             color /= frames + 1;
-            return ColorToPixel(color);
+            pixels[x + y * screenWidth] = ColorToPixel(color);
+            pixelsChanged = true;
         }
 
-        private Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
+        public Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
         {
             if (rayTracer == RayTracer.Whitted)
                 return Whitted.TraceRay(ray, scene, debug: debug);
@@ -267,6 +336,60 @@ namespace Lighthouse3
         public void MoveZ(float movement)
         {
             position = position + direction * movement;
+        }
+    }
+
+    public delegate void TacingThreadCallback(Vector3[] pixelColors);
+
+    public class TracingThread
+    {
+        private readonly Camera camera;
+        private readonly Scene scene;
+        private readonly int start;
+        private readonly int end;
+        public bool abort = false;
+
+        private TacingThreadCallback callback;
+
+        public TracingThread(Camera camera, Scene scene, int start, int end, TacingThreadCallback callback)
+        {
+            this.camera = camera;
+            this.scene = scene;
+            this.start = start;
+            this.end = end;
+            this.callback = callback;
+        }
+
+        public void ThreadProc()
+        {
+            Vector3[] pixelColors = new Vector3[(end - start) * camera.screenHeight];
+            float raysDivider = 1f / camera.raysPerPixel;
+            for (int x = start; x < end; x++)
+            {
+                for (int y = 0; y < camera.screenHeight; y++)
+                {
+                    if (abort)
+                        return;
+                    if (camera.raysPerPixel > 1)
+                    {
+                        Ray[] pixelRays = camera.antiAliasing ? camera.GetRandomizedPixelRays(x, y, camera.raysPerPixel) : camera.GetPixelRays(x, y, camera.raysPerPixel);
+                        Vector3 combinedColour = Vector3.Zero;
+                        for (int i = 0; i < camera.raysPerPixel; i++)
+                        {
+                            combinedColour += camera.TraceRay(pixelRays[i], scene);
+                        }
+                        pixelColors[(x - start) + y * (end - start)] += combinedColour * raysDivider;
+                    }
+                    else
+                    {
+                        pixelColors[(x - start) + y * (end - start)] += camera.TraceRay(camera.antiAliasing ? camera.GetRandomizedPixelRay(x, y) : camera.GetPixelRay(x, y), scene);
+                    }
+                }
+            }
+
+
+            if (!abort)
+                callback?.Invoke(pixelColors);
         }
     }
 }

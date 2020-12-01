@@ -54,7 +54,7 @@ namespace Lighthouse3
         public static Scene MirrorScene()
         {
             Scene scene = new Scene();
-            scene.mainCamera = new Camera(new Vector3(0, 0, -5), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya, antiAliasing: true);
+            scene.mainCamera = new Camera(new Vector3(0, 0, -5), new Vector3(0, 0, 1), Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, 1.5f, 1, rayTracer: RayTracers.RayTracer.Kajiya, antiAliasing: false);
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
@@ -73,8 +73,11 @@ namespace Lighthouse3
                 new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.Green),
                 new Plane(new Vector3(0, 0, 20), new Vector3(0, 0, -1), Material.Yellow),
 
-                new Sphere(new Vector3(0, 0, 0), 2f, Material.GlossyMirror),
-			};
+                new Sphere(new Vector3(-4, 0, 6), 2f, Material.Glass),
+                new Sphere(new Vector3(4, 0, 6), 2f, Material.Blue),
+                new Sphere(new Vector3(-8, 0, 4), 2f, Material.Mirror),
+                new Sphere(new Vector3(8, 0, 4), 2f, Material.GlossyMirror),
+            };
             return scene;
         }
 

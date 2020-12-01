@@ -8,7 +8,24 @@ namespace Lighthouse3
     public static class Calc
     {
 
-        static Random random = new Random();
+        private static readonly Random globalRandom = new Random();
+        [ThreadStatic] private static Random random;
+        // From https://stackoverflow.com/a/11109361
+        private static void CheckRandom()
+        {
+            if (random == null)
+            {
+                lock (globalRandom)
+                {
+                    if (random == null)
+                    {
+                        int seed = globalRandom.Next();
+                        random = new Random(seed);
+                    }
+                }
+            }
+        }
+
         public static float Epsilon = 0.0005f;
         public static float InvPi 
         { 
@@ -100,11 +117,13 @@ namespace Lighthouse3
 
         public static float Random()
         {
+            CheckRandom();
             return (float)random.NextDouble();
         }
 
         public static int RandomInt(int min, int max)
         {
+            CheckRandom();
             return random.Next(min, max);
         }
 

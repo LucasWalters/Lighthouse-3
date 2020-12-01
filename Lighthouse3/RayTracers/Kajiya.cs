@@ -9,7 +9,7 @@ namespace Lighthouse3.RayTracers
 {
     public static class Kajiya
     {
-        public const int MaxDepth = 4;
+        public const int MaxDepth = 10;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
         {
