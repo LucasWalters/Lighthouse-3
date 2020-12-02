@@ -363,10 +363,10 @@ namespace Lighthouse3
             v = v * 2 - 1;
 
 
-            float r = (float)Math.Sqrt(u * u + v * v);
+            float rSquared = (u * u) + (v * v);
 
-            u = u * (1 + barrelDistortion * r * r );
-            v = v * (1 + barrelDistortion * r * r );
+            u = u * (1 + barrelDistortion * rSquared);
+            v = v * (1 + barrelDistortion * rSquared);
 
             u = (u + 1) / 2;
             v = (v + 1) / 2;
@@ -380,10 +380,10 @@ namespace Lighthouse3
             v = v * 2 - 1;
 
 
-            float r = (float)Math.Sqrt(u * u + v * v);
+            float rSquared = (u * u) + (v * v);
 
-            u = u * (1 - pinDistortion * r * r);
-            v = v * (1 - pinDistortion * r * r);
+            u = u * (1 - pinDistortion * rSquared);
+            v = v * (1 - pinDistortion * rSquared);
 
             u = (u + 1) / 2;
             v = (v + 1) / 2;
