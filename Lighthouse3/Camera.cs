@@ -45,7 +45,7 @@ namespace Lighthouse3
         Vector3 topRight;
         //Bottom left corner of screen
         Vector3 bottomLeft;
-        Vector3 screenCenter;
+        public Vector3 screenCenter;
 
         public Vector3[] pixelColors;
         public int[] pixels;
@@ -58,11 +58,13 @@ namespace Lighthouse3
         bool resetFrame = true;
         float barrelDistortion;
         float pinDistortion;
+        public float vignettingFactor;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float barrelDistortion = 0.2f, float pinDistortion = 0.1f)
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float barrelDistortion = 0.2f, float pinDistortion = 0.1f,
+            float vignettingFactor = 0f)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -78,6 +80,7 @@ namespace Lighthouse3
             this.antiAliasing = antiAliasing;
             this.barrelDistortion = barrelDistortion;
             this.pinDistortion = pinDistortion;
+            this.vignettingFactor = vignettingFactor;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             //Console.WriteLine(up);
@@ -218,13 +221,20 @@ namespace Lighthouse3
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < raysPerPixel; i++)
                         {
-                            combinedColour += TraceRay(pixelRays[i], scene);
+
+                            float distanceToCenterPixelSquared = (pixelRays[i].origin - screenCenter).LengthSquared;
+                            float vignetVal = 1 - Calc.Clamp((vignettingFactor * distanceToCenterPixelSquared), 0, 1);
+
+                            combinedColour += TraceRay(pixelRays[i], scene) * vignetVal;
                         }
                         pixelColors[x + y * screenWidth] += combinedColour * raysDivider;
                     }
                     else
                     {
-                        pixelColors[x + y * screenWidth] += TraceRay(antiAliasing ? GetRandomizedPixelRay(x, y) : GetPixelRay(x, y), scene);
+                        Ray ray = antiAliasing ? GetRandomizedPixelRay(x, y) : GetPixelRay(x, y);
+                        float distanceToCenterPixelSquared = (ray.origin - screenCenter).LengthSquared;
+                        float vignetVal = 1 - Calc.Clamp((vignettingFactor * distanceToCenterPixelSquared), 0, 1);
+                        pixelColors[x + y * screenWidth] += TraceRay(ray, scene) * vignetVal;
                     }
                     pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
                 }
@@ -430,13 +440,18 @@ namespace Lighthouse3
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < camera.raysPerPixel; i++)
                         {
-                            combinedColour += camera.TraceRay(pixelRays[i], scene);
+                            float distanceToCenterPixelSquared = (pixelRays[i].origin - camera.screenCenter).LengthSquared;
+                            float vignetVal = 1 - Calc.Clamp((camera.vignettingFactor * distanceToCenterPixelSquared), 0, 1);
+                            combinedColour += camera.TraceRay(pixelRays[i], scene) * vignetVal;
                         }
                         pixelColors[(x - start) + y * (end - start)] += combinedColour * raysDivider;
                     }
                     else
                     {
-                        pixelColors[(x - start) + y * (end - start)] += camera.TraceRay(camera.antiAliasing ? camera.GetRandomizedPixelRay(x, y) : camera.GetPixelRay(x, y), scene);
+                        Ray ray = camera.antiAliasing ? camera.GetRandomizedPixelRay(x, y) : camera.GetPixelRay(x, y);
+                        float distanceToCenterPixelSquared = (camera.GetPixelPos(x, y) - camera.screenCenter).LengthSquared;
+                        float vignetVal = 1 - Calc.Clamp((camera.vignettingFactor * distanceToCenterPixelSquared), 0, 1);
+                        pixelColors[(x - start) + y * (end - start)] += camera.TraceRay(ray, scene) * vignetVal;
                     }
                 }
             }
