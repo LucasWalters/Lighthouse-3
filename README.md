@@ -1,6 +1,8 @@
 # Lighthouse-3
+(Note: Name can be changed if requested)
 
 Created by Lucas Walters (5037883) and Kwinten Jacobs (7006233)
+
 =======
 List of features:
 - Whitted style ray tracer
@@ -15,6 +17,7 @@ List of features:
 - Vignetting, barrel distortion and pincushion distortion
 - Anti-aliasing, depth of field & Gamma correction
 - OBJ loader for importing .obj files
+- The project name
 
 ========
 Important classes:
@@ -25,6 +28,7 @@ Important classes:
 - Whitted.cs : The logic for the whitted style ray tracer
 - Camera.cs : The logic for the camera and the multithreading.
 - game.cs : Contains the logic for user input and where a scene is selected to be loaded in.
+- Calc.cs : Contains math helper functions and random number generators
 ========
 Controls:
 
