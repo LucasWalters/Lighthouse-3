@@ -37,7 +37,7 @@ namespace Lighthouse3
 
         public bool antiAliasing;
 
-        public enum ProjectionType { Perspective, Orthographic }
+        public enum ProjectionType { Perspective, Orthographic, BarrelDistortion}
 
         //Top left corner of screen
         Vector3 topLeft;
@@ -56,11 +56,12 @@ namespace Lighthouse3
         int threadsFinished = 0;
         bool rendering = false;
         bool resetFrame = true;
+        float barrelDistortion = 0f;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false)
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float barrelDistortion = 0.1f)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -74,6 +75,7 @@ namespace Lighthouse3
             this.gammaCorrection = gammaCorrection;
             this.rayTracer = rayTracer;
             this.antiAliasing = antiAliasing;
+            this.barrelDistortion = barrelDistortion;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             //Console.WriteLine(up);
@@ -125,14 +127,21 @@ namespace Lighthouse3
         // Maps screen position to world position, u & v = [0, 1]
         public Vector3 GetPointPos(float u, float v)
         {
+            if (projection == ProjectionType.BarrelDistortion)
+            {
+                Vector2 uv = BarrelDistortion(u, v);
+                u = uv.X;
+                v = uv.Y;
+            }
             return topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
         }
 
         // Maps pixel position to world position, x = [0, screenWidth), y = [0, screenHeight)
         public Vector3 GetPixelPos(int x, int y)
         {
-            float u = (1f / (screenWidth - 1)) * x;
-            float v = (1f / (screenHeight - 1)) * y;
+            float u = ((1f / (screenWidth - 1)) * x);
+            float v = ((1f / (screenHeight - 1)) * y);
+
             return GetPointPos(u, v);
         }
 
@@ -337,6 +346,24 @@ namespace Lighthouse3
         {
             position = position + direction * movement;
         }
+
+        public Vector2 BarrelDistortion(float u, float v)
+        {
+            u = u * 2 - 1;
+            v = v * 2 - 1;
+
+
+            float r = (float)Math.Sqrt(u * u + v * v);
+
+            u = u * (1 + barrelDistortion * r * r + barrelDistortion * r * r * r * r);
+            v = v * (1 + barrelDistortion * r * r + barrelDistortion * r * r * r * r);
+
+            u = (u + 1) / 2;
+            v = (v + 1) / 2;
+
+            return new Vector2(u, v);
+        }
+
     }
 
     public delegate void TacingThreadCallback(Vector3[] pixelColors);
