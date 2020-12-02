@@ -19,6 +19,7 @@ namespace Lighthouse3
         public Light[] lights;
         public Primitive[] primitives;
 
+        // Doesn't work because of position
         public static Scene BasicScene()
         {
             Scene scene = new Scene();
@@ -78,6 +79,8 @@ namespace Lighthouse3
                 new Sphere(new Vector3(-8, 0, 4), 2f, Material.Mirror),
                 new Sphere(new Vector3(8, 0, 4), 2f, Material.GlossyMirror),
             };
+            // Uncomment to add a box in front of the camera
+            //scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/square.obj")).ToArray();
             return scene;
         }
 
@@ -112,6 +115,9 @@ namespace Lighthouse3
                 new Sphere(new Vector3(-1, 0, 2), 1f, Material.Glass),
                 //new Sphere(new Vector3(0, -3, 7), 2f, Material.Yellow),
 			};
+
+            // Uncomment to add a box in front of the camera
+            //scene.primitives = scene.primitives.Concat(ObjectLoader.GetObjTriangles("../../assets/square.obj")).ToArray();
             return scene;
 
         }
