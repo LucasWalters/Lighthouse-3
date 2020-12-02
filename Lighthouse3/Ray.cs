@@ -1,4 +1,5 @@
-﻿using Lighthouse3.Primitives;
+﻿using Lighthouse3.Lights;
+using Lighthouse3.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
@@ -25,12 +26,24 @@ namespace Lighthouse3
             return origin + direction * distance;
         }
 
-        public Intersection NearestIntersection(Primitive[] primitives)
+        public Intersection NearestIntersection(Scene scene)
         {
             Intersection intersection = null;
-            foreach(Primitive primitive in primitives)
+            float t;
+            foreach (Light light in scene.lights)
             {
-                float t;
+                if (light is AreaLight)
+                {
+                    Rectangle rect = ((AreaLight)light).rect;
+                    bool intersected = rect.Intersect(this, out t);
+                    if (intersected && (intersection == null || t < intersection.distance))
+                    {
+                        intersection = new Intersection(t, this, rect);
+                    }
+                }
+            }
+            foreach (Primitive primitive in scene.primitives)
+            {
                 bool intersected = primitive.Intersect(this, out t);
                 if (intersected && (intersection == null || t < intersection.distance))
                 {

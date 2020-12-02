@@ -57,6 +57,7 @@
     <Compile Include="Lights\AreaLight.cs" />
     <Compile Include="Lights\PointLight.cs" />
     <Compile Include="ObjectLoader.cs" />
+    <Compile Include="Primitives\Rectangle.cs" />
     <Compile Include="Primitives\Plane.cs" />
     <Compile Include="Primitives\Sphere.cs" />
     <Compile Include="Primitives\Primitive.cs" />

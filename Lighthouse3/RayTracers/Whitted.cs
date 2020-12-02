@@ -22,7 +22,7 @@ namespace Lighthouse3.RayTracers
                 return Color.White;
             }
 
-            Intersection intersection = ray.NearestIntersection(scene.primitives);
+            Intersection intersection = ray.NearestIntersection(scene);
             if (intersection == null)
                 return scene.backgroundColor;
             
@@ -80,6 +80,8 @@ namespace Lighthouse3.RayTracers
                 refraction = ray.Refract(intersection.distance, normal, currentRefractiveIndex, backface ? lastRefractiveIndex : material.refractiveIndex, out reflectionChance);
 
                 float refractionChance = (1 - reflectionChance);
+                if (debug)
+                    Console.WriteLine(reflectionChance);
 
                 if (refraction == null)
                 {

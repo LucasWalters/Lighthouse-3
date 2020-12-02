@@ -80,7 +80,6 @@ namespace Lighthouse3
             this.pinDistortion = pinDistortion;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
-            //Console.WriteLine(up);
             if (Math.Abs(direction.X) == 1f)
             {
                 up = Vector3.UnitY;
@@ -102,18 +101,7 @@ namespace Lighthouse3
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
-            //foreach (TracingThread thread in threads)
-            //{
-            //    if (thread != null)
-            //        thread.abort = true;
-            //}
-            //pixelColors = new Vector3[screenWidth * screenHeight];
-            //pixels = new int[screenWidth * screenHeight];
-            //pixelsChanged = false;
-            //frames = 0;
-
             left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
-            //Console.WriteLine(left);
             
             screenCenter = position + direction * screenDistance;
 

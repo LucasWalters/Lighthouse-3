@@ -15,14 +15,18 @@ namespace Lighthouse3.RayTracers
         {
 
 
-            Intersection intersection = ray.NearestIntersection(scene.primitives);
+            Intersection intersection = ray.NearestIntersection(scene);
             if (intersection == null)
                 return scene.backgroundColor;
 
             Material material = intersection.hit.material;
 
             if (material.emissive)
+            {
+                if (debug)
+                    Console.WriteLine("Light hit!");
                 return material.color;
+            }
 
 
             Vector3 normal = intersection.hit.Normal(intersection);
@@ -32,11 +36,11 @@ namespace Lighthouse3.RayTracers
                 if (debug)
                     Console.WriteLine("Max reached!");
 
-                if (material.diffuse > 0)
-                {
-                    Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
-                    return material.color * light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
-                }
+                //if (material.diffuse > 0 && scene.lights.Length > 0)
+                //{
+                //    Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
+                //    return material.color * light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
+                //}
                 return Color.White;
             }
 
@@ -92,25 +96,18 @@ namespace Lighthouse3.RayTracers
                 // Refract the ray to either go into the material or come out of the material
                 Ray refraction;
                 float reflectionChance;
-                Vector3 refractionColor = Vector3.Zero;
                 refraction = ray.Refract(intersection.distance, normal, currentRefractiveIndex, backface ? lastRefractiveIndex : material.refractiveIndex, out reflectionChance);
 
                 bool refract;
 
                 if (refraction == null)
-                {
                     //Total internal reflection
                     refract = false;
-                }
                 else if (backface || reflectionChance < Calc.Epsilon)
-                {
                     //Either backface or reflection chance too low, just ignore
                     refract = true;
-                }
                 else
-                {
                     refract = Calc.Random() > reflectionChance;
-                }
 
                 if (refract)
                     color += TraceRay(refraction, scene, depth + 1, backface ? lastRefractiveIndex : material.refractiveIndex, currentRefractiveIndex, debug: debug);

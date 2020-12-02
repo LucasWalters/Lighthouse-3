@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using Lighthouse3.Primitives;
+using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
@@ -10,20 +11,12 @@ namespace Lighthouse3.Lights
 {
     public class AreaLight : Light
     {
-        public Vector3 topLeft;
-        public Vector3 topRight;
-        public Vector3 bottomLeft;
-        public Vector3 lightNormal;
-        public float area;
+        public Rectangle rect;
+
         public AreaLight(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 color, float intensity) : base(color, intensity)
         {
-            this.topLeft = topLeft;
-            this.topRight = topRight;
-            this.bottomLeft = bottomLeft;
-            Vector3 side1 = topRight - topLeft;
-            Vector3 side2 = bottomLeft - topLeft;
-            lightNormal = Vector3.Cross(side1, side2);
-            area = side1.Length * side2.Length;
+            Material mat = new Material(color, emissive: true);
+            rect = new Rectangle(topLeft, topRight, bottomLeft, mat);
         }
 
         private Vector3 RandomPointOnLight()
@@ -31,7 +24,7 @@ namespace Lighthouse3.Lights
             float u = Calc.Random();
             float v = Calc.Random();
 
-            return topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
+            return rect.topLeft + u * rect.side1 + v * rect.side2;
         }
 
         public override Vector3 DirectIllumination(Intersection intersection, Vector3 normal, Scene scene, bool debug = false)
@@ -41,7 +34,7 @@ namespace Lighthouse3.Lights
             Vector3 toLight = randomPoint - intersectionPoint;
             float dist = toLight.Length;
             toLight /= dist;
-            float cos_o = Vector3.Dot(-toLight, lightNormal);
+            float cos_o = Vector3.Dot(-toLight, rect.normal);
             float cos_i = Vector3.Dot(toLight, normal);
             if (cos_o <= 0 || cos_i <= 0) 
                 return Color.Black;
@@ -53,7 +46,7 @@ namespace Lighthouse3.Lights
                 return Color.Black;
 
             // light is visible (V(p,p’)=1); calculate transport
-            float solidAngle = (cos_o * area) / (dist * dist);
+            float solidAngle = (cos_o * rect.area) / (dist * dist);
             // Multiply result with the number of lights in the scene
             return Calc.InvPi * color * solidAngle * cos_i * intensity;
         }

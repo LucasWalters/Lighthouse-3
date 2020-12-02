@@ -58,20 +58,19 @@ namespace Lighthouse3
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
-                //new PointLight(new Vector3(0, 10, -5), Color.White, 500),
-                new AreaLight(new Vector3(3,10,3), new Vector3(-3,10,3), new Vector3(3,10,-3),  Color.White, 0.2f)
+                //new PointLight(new Vector3(0, 10, -5), Color.White, 500f),
+                new AreaLight(new Vector3(20,10,20), new Vector3(-20,10,20), new Vector3(20,10,-20),  Color.White, 0.2f),
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
 
             scene.primitives = new Primitive[]
             {
-                new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.Light),
-                new Plane(new Vector3(-20, 0, 0), new Vector3(1, 0, 0), Material.Blue),
+                new Plane(new Vector3(-20, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
                 new Plane(new Vector3(0, -2, 0), new Vector3(0, 1, 0), checkerboard),
-                new Plane(new Vector3(20, 0, 0), new Vector3(-1, 0, 0), Material.Red),
-                new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.Green),
-                new Plane(new Vector3(0, 0, 20), new Vector3(0, 0, -1), Material.Yellow),
+                new Plane(new Vector3(20, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
+                new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.DarkOliveGreen),
+                new Plane(new Vector3(0, 0, 20), new Vector3(0, 0, -1), Material.YellowGreen),
 
                 new Sphere(new Vector3(-4, 0, 6), 2f, Material.Glass),
                 new Sphere(new Vector3(4, 0, 6), 2f, Material.Blue),
@@ -97,20 +96,16 @@ namespace Lighthouse3
 
             scene.primitives = new Primitive[]
             { 
-				//new Sphere(new Vector3(4, 0, 7), 2),
-				//new Sphere(new Vector3(-3, 3.5f, 8), 1.5f, red),
-				new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.Blue),
-                new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), Material.Gray),
-                new Plane(new Vector3(0, 5, 0), new Vector3(0, -1, 0), Material.Light),
-                new Plane(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.Red),
-                new Plane(new Vector3(0, -1.1f, 0), new Vector3(0, 1, 0), Material.Green),
-                //new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.Yellow),
+				new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
+                new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), checkerboard),
+                new Plane(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
+                new Plane(new Vector3(0, -1.1f, 0), new Vector3(0, 1, 0), Material.DarkOliveGreen),
+                new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.YellowGreen),
 
 
                 new Sphere(new Vector3(2, 0, 3), 1f, Material.Yellow),
                 new Sphere(new Vector3(3, 0, 1), 1f, Material.GlossyMirror),
                 new Sphere(new Vector3(-1, 0, 2), 1f, Material.Glass),
-                //new Sphere(new Vector3(0, -3, 7), 2f, Material.Yellow),
 			};
             return scene;
 
