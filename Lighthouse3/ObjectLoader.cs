@@ -59,7 +59,9 @@ namespace Lighthouse3
 
         private static Material MtlToMaterial(ObjLoader.Loader.Data.Material material)
         {
-            return new Material(material.DiffuseColor.X, material.DiffuseColor.Y, material.DiffuseColor.Z, specularity: material.SpecularCoefficient, transparency: material.Transparency);
+            if (material != null)
+                return new Material(material.DiffuseColor.X, material.DiffuseColor.Y, material.DiffuseColor.Z, specularity: material.SpecularCoefficient, transparency: material.Transparency);
+            return Material.BlueViolet;
         }
 
     }

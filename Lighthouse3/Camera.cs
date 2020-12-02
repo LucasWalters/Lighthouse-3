@@ -37,7 +37,7 @@ namespace Lighthouse3
 
         public bool antiAliasing;
 
-        public enum ProjectionType { Perspective, Orthographic, BarrelDistortion, PinDistortion}
+        public enum ProjectionType { Perspective, Orthographic, BarrelDistortion, PinDistortion }
 
         //Top left corner of screen
         Vector3 topLeft;
@@ -107,7 +107,7 @@ namespace Lighthouse3
         public void UpdateCamera()
         {
             left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
-            
+
             screenCenter = position + direction * screenDistance;
 
             topLeft = screenCenter + up + left;
@@ -218,7 +218,7 @@ namespace Lighthouse3
                 {
                     float vignette = GetVignetteFactor(x, y);
                     if (raysPerPixel > 1)
-                    { 
+                    {
                         Ray[] pixelRays = antiAliasing ? GetRandomizedPixelRays(x, y, raysPerPixel) : GetPixelRays(x, y, raysPerPixel);
                         Vector3 combinedColour = Vector3.Zero;
                         for (int i = 0; i < raysPerPixel; i++)
@@ -296,7 +296,7 @@ namespace Lighthouse3
                     combinedColour += TraceRay(pixelRays[i], scene, true);
                 }
                 float divider = 1f / raysPerPixel;
-                color += combinedColour* divider;
+                color += combinedColour * divider;
             }
             else
             {

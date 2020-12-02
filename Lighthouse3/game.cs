@@ -33,7 +33,7 @@ namespace Lighthouse3 {
             //screen.Clear(0xcc33ff);
             //small = new Sprite("../../assets/small.png");
 
-			scene = Scene.MirrorScene();
+			scene = Scene.CURRENT_SCENE;
             camera = scene.mainCamera;
         }
 

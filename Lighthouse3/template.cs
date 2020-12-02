@@ -20,6 +20,9 @@ namespace Lighthouse3
 			GL.Enable( EnableCap.Texture2D );
 			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );
 			ClientSize = new Size(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+			//Fix screen too big
+			Game.SCREEN_WIDTH = Width;
+			Game.SCREEN_HEIGHT = Height;
 			game = new Game();
 			game.screen = new Surface( Width, Height );
 			Sprite.target = game.screen;
