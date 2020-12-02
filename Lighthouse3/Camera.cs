@@ -37,7 +37,7 @@ namespace Lighthouse3
 
         public bool antiAliasing;
 
-        public enum ProjectionType { Perspective, Orthographic, BarrelDistortion}
+        public enum ProjectionType { Perspective, Orthographic, BarrelDistortion, PinDistortion}
 
         //Top left corner of screen
         Vector3 topLeft;
@@ -56,12 +56,13 @@ namespace Lighthouse3
         int threadsFinished = 0;
         bool rendering = false;
         bool resetFrame = true;
-        float barrelDistortion = 0f;
+        float barrelDistortion;
+        float pinDistortion;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float barrelDistortion = 0.1f)
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float barrelDistortion = 0.2f, float pinDistortion = 0.1f)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -76,6 +77,7 @@ namespace Lighthouse3
             this.rayTracer = rayTracer;
             this.antiAliasing = antiAliasing;
             this.barrelDistortion = barrelDistortion;
+            this.pinDistortion = pinDistortion;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             //Console.WriteLine(up);
@@ -133,6 +135,14 @@ namespace Lighthouse3
                 u = uv.X;
                 v = uv.Y;
             }
+
+            if (projection == ProjectionType.PinDistortion)
+            {
+                Vector2 uv = PinDistortion(u, v);
+                u = uv.X;
+                v = uv.Y;
+            }
+
             return topLeft + u * (topRight - topLeft) + v * (bottomLeft - topLeft);
         }
 
@@ -355,8 +365,25 @@ namespace Lighthouse3
 
             float r = (float)Math.Sqrt(u * u + v * v);
 
-            u = u * (1 + barrelDistortion * r * r + barrelDistortion * r * r * r * r);
-            v = v * (1 + barrelDistortion * r * r + barrelDistortion * r * r * r * r);
+            u = u * (1 + barrelDistortion * r * r );
+            v = v * (1 + barrelDistortion * r * r );
+
+            u = (u + 1) / 2;
+            v = (v + 1) / 2;
+
+            return new Vector2(u, v);
+        }
+
+        public Vector2 PinDistortion(float u, float v)
+        {
+            u = u * 2 - 1;
+            v = v * 2 - 1;
+
+
+            float r = (float)Math.Sqrt(u * u + v * v);
+
+            u = u * (1 - pinDistortion * r * r);
+            v = v * (1 - pinDistortion * r * r);
 
             u = (u + 1) / 2;
             v = (v + 1) / 2;
