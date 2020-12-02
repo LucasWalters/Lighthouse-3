@@ -210,7 +210,7 @@ namespace Lighthouse3
                     pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
                 }
             }
-            //pixelsChanged = true;
+            pixelsChanged = true;
             return pixels;
         }
         public void MultithreadedFrame(Scene scene)
