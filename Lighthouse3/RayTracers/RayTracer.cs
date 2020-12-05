@@ -8,6 +8,6 @@ namespace Lighthouse3.RayTracers
 {
     public enum RayTracer
     {
-        Whitted, Kajiya 
+        Whitted, Kajiya, PathTracer
     }
 }

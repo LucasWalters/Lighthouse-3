@@ -295,8 +295,7 @@ namespace Lighthouse3
                 {
                     combinedColour += TraceRay(pixelRays[i], scene, true);
                 }
-                float divider = 1f / raysPerPixel;
-                color += combinedColour * divider;
+                color += combinedColour / raysPerPixel;
             }
             else
             {
@@ -421,6 +420,8 @@ namespace Lighthouse3
 
         public void ThreadProc()
         {
+            //Initializes random seed in calc
+            Calc.Init();
             Vector3[] pixelColors = new Vector3[(end - start) * camera.screenHeight];
             float raysDivider = 1f / camera.raysPerPixel;
             for (int x = start; x < end; x++)

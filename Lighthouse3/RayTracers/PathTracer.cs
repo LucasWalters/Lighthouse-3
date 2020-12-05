@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Lighthouse3.RayTracers
 {
-    public static class Kajiya
+    public static class PathTracer
     {
         public const int MaxDepth = 10;
 
-        public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
+        public static Vector3 TraceRay(Ray ray, Scene scene, bool sampleLight, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
         {
 
 
@@ -25,7 +25,7 @@ namespace Lighthouse3.RayTracers
             {
                 if (debug)
                     Console.WriteLine("Light hit!");
-                return material.color;
+                return sampleLight ? material.color : Color.Black;
             }
 
 
@@ -35,6 +35,12 @@ namespace Lighthouse3.RayTracers
             {
                 if (debug)
                     Console.WriteLine("Max reached!");
+
+                //if (material.diffuse > 0 && scene.lights.Length > 0)
+                //{
+                //    Light light = scene.lights[Calc.RandomInt(0, scene.lights.Length)];
+                //    return material.color * light.DirectIllumination(intersection, normal, scene, debug) * scene.lights.Length;
+                //}
                 return Color.Black;
             }
 
@@ -65,18 +71,24 @@ namespace Lighthouse3.RayTracers
             //Handle diffuse color
             if (materialTypeRandom < material.diffuse)
             {
+                Vector3 BRDF = material.color * Calc.InvPi;
+
+                int nrLights = scene.lights.Length;
+                Light light = scene.lights[nrLights > 1 ? Calc.RandomInt(0, nrLights) : 0];
+                color = BRDF * light.DirectIllumination(intersection, normal, scene, debug) * nrLights;
+
                 Ray reflection = ray.RandomReflect(intersection.distance, normal);
 
-                Vector3 reflectionColor = TraceRay(reflection, scene, depth + 1, debug: debug) * Vector3.Dot(normal, reflection.direction);
+                Vector3 reflectionColor = TraceRay(reflection, scene, false, depth + 1, debug: debug) * Vector3.Dot(normal, reflection.direction);
 
-                color = 2f * reflectionColor;
+                return Calc.Pi * 2f * BRDF * reflectionColor + color;
             }
 
             //Handle specularity
             else if(materialTypeRandom < material.specularity + material.diffuse)
             {
                 Ray reflection = ray.GlossyReflect(intersection.distance, normal, material.glossiness);
-                color = TraceRay(reflection, scene, depth + 1, debug: debug);
+                color = TraceRay(reflection, scene, true, depth + 1, debug: debug);
             }
 
             //Handle transparancy
@@ -99,9 +111,9 @@ namespace Lighthouse3.RayTracers
                     refract = Calc.Random() > reflectionChance;
 
                 if (refract)
-                    color = TraceRay(refraction, scene, depth + 1, backface ? lastRefractiveIndex : material.refractiveIndex, currentRefractiveIndex, debug: debug);
+                    color = TraceRay(refraction, scene, true, depth + 1, backface ? lastRefractiveIndex : material.refractiveIndex, currentRefractiveIndex, debug: debug);
                 else
-                    color = TraceRay(ray.Reflect(intersection.distance, normal), scene, depth + 1, debug: debug);
+                    color = TraceRay(ray.Reflect(intersection.distance, normal), scene, true, depth + 1, debug: debug);
             }
 
             //Render checkerboard pattern

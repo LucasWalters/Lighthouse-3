@@ -2,51 +2,27 @@
 using OpenTK.Graphics;
 using System;
 using System.Collections;
+using System.Threading;
 
 namespace Lighthouse3
 {
     public static class Calc
     {
-
-        private static readonly Random globalRandom = new Random();
-        [ThreadStatic] private static Random random;
-        // From https://stackoverflow.com/a/11109361
-        private static void CheckRandom()
-        {
-            if (random == null)
-            {
-                lock (globalRandom)
-                {
-                    if (random == null)
-                    {
-                        int seed = globalRandom.Next();
-                        random = new Random(seed);
-                    }
-                }
-            }
-        }
+        // Seed used to generate random numbers
+        [ThreadStatic] private static uint seed;
 
         public static float Epsilon = 0.0005f;
-        public static float InvPi 
-        { 
-            get 
-            {
-                if (invPi == 0f)
-                    invPi = 1f / (float)Math.PI;
-                return invPi;
-            }
-        }
-        private static float invPi;
-        public static float Pi
+        public static float InvPi { get; private set; }
+        public static float Pi { get; private set; }
+
+        //Init should be called separately for every thread
+        public static void Init()
         {
-            get
-            {
-                if (pi == 0f)
-                    pi = (float)Math.PI;
-                return pi;
-            }
+            seed = (uint)(new Random().Next() * uint.MaxValue);
+
+            Pi = (float)Math.PI;
+            InvPi = 1f / (float)Math.PI;
         }
-        private static float pi;
 
         //Inverse lerp, maps value to [0, 1] based on min and max values
         public static float ILerp(float min, float max, float at)
@@ -115,16 +91,40 @@ namespace Lighthouse3
             return new Vector3(vector[x], vector[y], vector[z]);
         }
 
-        public static float Random()
+        // From https://gist.github.com/badboy/6267743
+        public static uint WangHash(uint seed)
         {
-            CheckRandom();
-            return (float)random.NextDouble();
+            seed = (seed ^ 61) ^ (seed >> 16);
+            seed *= 9;
+            seed ^= (seed >> 4);
+            seed *= 0x27d4eb2d;
+            seed ^= (seed >> 15);
+            return seed;
         }
 
+        public static uint XORshift(uint state)
+        {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            return state;
+        }
+
+        // Range [min, max)
         public static int RandomInt(int min, int max)
         {
-            CheckRandom();
-            return random.Next(min, max);
+            float x;
+            do
+            {
+                x = Random();
+            } while (x == 1f);
+            return (int)(x * (max - min)) + min;
+        }
+
+        // Range [0, 1]
+        public static float Random()
+        {
+            return XORshift(WangHash(++seed)) * 2.3283064365387e-10f;
         }
 
         public static Vector3 RandomOnUnitSphere()

@@ -32,7 +32,7 @@ namespace Lighthouse3 {
 		{
             //screen.Clear(0xcc33ff);
             //small = new Sprite("../../assets/small.png");
-
+            Calc.Init();
 			scene = Scene.CURRENT_SCENE;
             camera = scene.mainCamera;
         }

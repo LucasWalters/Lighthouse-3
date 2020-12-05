@@ -75,7 +75,7 @@ namespace Lighthouse3
             scene.lights = new Light[]
             {
                 //new PointLight(new Vector3(0, 10, -5), Color.White, 500f),
-                new AreaLight(new Vector3(20,10,20), new Vector3(-20,10,20), new Vector3(20,10,-20),  Color.White, 0.2f),
+                new AreaLight(new Vector3(20,10,20), new Vector3(-20,10,20), new Vector3(20,10,-20),  Color.White, 0.0015f),
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
@@ -83,7 +83,7 @@ namespace Lighthouse3
             scene.primitives = new Primitive[]
             {
                 new Plane(new Vector3(-20, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
-                new Plane(new Vector3(0, -2, 0), new Vector3(0, 1, 0), checkerboard),
+                new Plane(new Vector3(0, -2, 0), new Vector3(0, 1, 0), Material.Gray),
                 new Plane(new Vector3(20, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
                 new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.DarkOliveGreen),
                 new Plane(new Vector3(0, 0, 20), new Vector3(0, 0, -1), Material.YellowGreen),

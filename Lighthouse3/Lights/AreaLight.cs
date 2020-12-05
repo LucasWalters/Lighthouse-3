@@ -48,7 +48,7 @@ namespace Lighthouse3.Lights
             // light is visible (V(p,p’)=1); calculate transport
             float solidAngle = (cos_o * rect.area) / (dist * dist);
             // Multiply result with the number of lights in the scene
-            return Calc.InvPi * color * solidAngle * cos_i * intensity;
+            return color * solidAngle * cos_i * intensity;
         }
     }
 }
