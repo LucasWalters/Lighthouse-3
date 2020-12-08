@@ -312,6 +312,8 @@ namespace Lighthouse3
                 return Whitted.TraceRay(ray, scene, debug: debug);
             if (rayTracer == RayTracer.Kajiya)
                 return Kajiya.TraceRay(ray, scene, debug: debug);
+            if (rayTracer == RayTracer.PathTracer)
+                return PathTracer.TraceRay(ray, scene, true, debug: debug);
             return Color.Black;
         }
 

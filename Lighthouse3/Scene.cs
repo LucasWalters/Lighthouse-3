@@ -64,7 +64,7 @@ namespace Lighthouse3
                     projection: Camera.ProjectionType.Perspective,
                     screenDistance: 1.5f,
                     raysPerPixel: 1,
-                    rayTracer: RayTracers.RayTracer.Kajiya,
+                    rayTracer: RayTracers.RayTracer.PathTracer,
                     antiAliasing: true,
                     vignettingFactor: 2f,
                     gammaCorrection: false,
