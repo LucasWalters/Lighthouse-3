@@ -108,6 +108,14 @@ namespace Lighthouse3
             return new Ray(rOrigin, rDirection);
         }
 
+        public Ray RandomReflectCosineWeighted(float distance, Vector3 normal)
+        {
+            Vector3 rDirection = Calc.RandomOnHalfSphereCosineWeighted();
+            rDirection = Calc.WorldToTangent(rDirection, normal);
+            Vector3 rOrigin = GetPoint(distance) + rDirection * Calc.Epsilon;
+            return new Ray(rOrigin, rDirection);
+        }
+
         // From https://www.flipcode.com/archives/reflection_transmission.pdf
         // And https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
         // And http://viclw17.github.io/2018/08/05/raytracing-dielectric-materials/

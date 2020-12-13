@@ -77,11 +77,12 @@ namespace Lighthouse3.RayTracers
                 Light light = scene.lights[nrLights > 1 ? Calc.RandomInt(0, nrLights) : 0];
                 color = BRDF * light.DirectIllumination(intersection, normal, scene, debug) * nrLights;
 
-                Ray reflection = ray.RandomReflect(intersection.distance, normal);
+                Ray reflection = ray.RandomReflectCosineWeighted(intersection.distance, normal);
+                float nDotR = Vector3.Dot(normal, reflection.direction);
+                float PDF = nDotR * Calc.InvPi;
+                Vector3 reflectionColor = BRDF * TraceRay(reflection, scene, false, depth + 1, debug: debug) * nDotR / PDF;
 
-                Vector3 reflectionColor = TraceRay(reflection, scene, false, depth + 1, debug: debug) * Vector3.Dot(normal, reflection.direction);
-
-                return Calc.Pi * 2f * BRDF * reflectionColor + color;
+                return reflectionColor + color;
             }
 
             //Handle specularity

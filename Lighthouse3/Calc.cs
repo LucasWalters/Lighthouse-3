@@ -129,12 +129,7 @@ namespace Lighthouse3
 
         public static Vector3 RandomOnUnitSphere()
         {
-            Vector3 point;
-            do
-            {
-                point = RandomInUnitCube();
-            } while (point.LengthSquared <= 1);
-            return point.Normalized();
+            return RandomInUnitSphere().Normalized();
         }
 
         public static Vector3 RandomInUnitSphere()
@@ -143,13 +138,52 @@ namespace Lighthouse3
             do
             {
                 point = RandomInUnitCube();
-            } while (point.LengthSquared <= 1);
+            } while (point.LengthSquared > 1);
             return point;
+        }
+
+        public static Vector3 RandomOnHalfSphereCosineWeighted()
+        {
+
+            float x;
+            float y;
+            float xS;
+            float yS;
+            do
+            {
+                x = Random() * 2f - 1f;
+                y = Random() * 2f - 1f;
+                xS = x * x;
+                yS = y * y;
+            } while (xS + yS > 1);
+            float z = Sqrt(1 - (xS + yS));
+            return new Vector3(x, y, z);
         }
 
         public static Vector3 RandomInUnitCube()
         {
             return new Vector3(Random() * 2f - 1f, Random() * 2f - 1f, Random() * 2f - 1f);
+        }
+
+        // From our predecessor in RenderSystem/common_functions.h
+        public static Vector3 WorldToTangent(Vector3 V, Vector3 N)
+        {
+            float sign = Sign(N.Z);
+            float a = -1f / (sign + N.Z);
+            float b = N.X * N.Y * a;
+            Vector3 B = new Vector3(1f + sign * N.X * N.X * a, sign * b, -sign * N.X);
+            Vector3 T = new Vector3(b, sign + N.Y * N.Y * a, -N.Y);
+            return new Vector3(Vector3.Dot(V, T), Vector3.Dot(V, B), Vector3.Dot(V, N));
+        }
+
+        public static float Sqrt(float n)
+        {
+            return (float)Math.Sqrt(n);
+        }
+
+        public static float Sign(float n)
+        {
+            return n < 0 ? -1f : 1f;
         }
     }
 

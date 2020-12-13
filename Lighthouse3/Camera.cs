@@ -37,7 +37,7 @@ namespace Lighthouse3
 
         public bool antiAliasing;
 
-        public enum ProjectionType { Perspective, Orthographic, BarrelDistortion, PinDistortion }
+        public enum ProjectionType { Perspective, Orthographic, Distortion }
 
         //Top left corner of screen
         Vector3 topLeft;
@@ -56,16 +56,21 @@ namespace Lighthouse3
         int threadsFinished = 0;
         bool rendering = false;
         bool resetFrame = true;
-        float barrelDistortion;
-        float pinDistortion;
+        float distortion;
         public float vignettingFactor;
         float aspectRatio;
+        bool stratification;
+        int strata = 0;
+        float invStrata;
+
+        float widthPerPixel;
+        float heightPerPixel;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
-            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float barrelDistortion = 0.2f, float pinDistortion = 0.1f,
-            float vignettingFactor = 0f)
+            bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float distortion = 0.2f,
+            float vignettingFactor = 0f, bool stratification = false)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -80,9 +85,9 @@ namespace Lighthouse3
             this.gammaCorrection = gammaCorrection;
             this.rayTracer = rayTracer;
             this.antiAliasing = antiAliasing;
-            this.barrelDistortion = barrelDistortion;
-            this.pinDistortion = pinDistortion;
+            this.distortion = distortion;
             this.vignettingFactor = vignettingFactor;
+            this.stratification = stratification;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             if (Math.Abs(direction.X) == 1f)
@@ -106,6 +111,26 @@ namespace Lighthouse3
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
+            if (stratification)
+            {
+                double sqrt = Math.Sqrt(raysPerPixel);
+                if (sqrt % 1 == 0)
+                {
+                    strata = (int)sqrt;
+                    invStrata = 1f / strata;
+                }
+                else
+                    Console.WriteLine("Invalid rays per pixel for stratification!");
+            }
+            else
+            {
+                strata = 0;
+                invStrata = 0f;
+            }
+
+            widthPerPixel = 1f / (screenWidth - 1);
+            heightPerPixel = 1f / (screenHeight - 1);
+
             left = Vector3.Cross(direction, up).Normalized() * ((float)screenWidth / screenHeight);
 
             screenCenter = position + direction * screenDistance;
@@ -122,16 +147,9 @@ namespace Lighthouse3
         // Maps screen position to world position, u & v = [0, 1]
         public Vector3 GetPointPos(float u, float v)
         {
-            if (projection == ProjectionType.BarrelDistortion)
+            if (projection == ProjectionType.Distortion)
             {
-                Vector2 uv = BarrelDistortion(u, v);
-                u = uv.X;
-                v = uv.Y;
-            }
-
-            if (projection == ProjectionType.PinDistortion)
-            {
-                Vector2 uv = PinDistortion(u, v);
+                Vector2 uv = DistortPointPos(u, v);
                 u = uv.X;
                 v = uv.Y;
             }
@@ -140,32 +158,35 @@ namespace Lighthouse3
         }
 
         // Maps pixel position to world position, x = [0, screenWidth), y = [0, screenHeight)
-        public Vector3 GetPixelPos(int x, int y)
+        public Vector3 GetPixelPos(int x, int y, int index = 0)
         {
-            float u = ((1f / (screenWidth - 1)) * x);
-            float v = ((1f / (screenHeight - 1)) * y);
+            if (stratification)
+            {
+                float u = (index % strata) * invStrata;
+                float v = (index / strata) * invStrata;
+                return GetPointPos(widthPerPixel * (x + u), heightPerPixel * (y + v));
+            }
 
-            return GetPointPos(u, v);
+            return GetPointPos(widthPerPixel * x, heightPerPixel * y);
         }
 
         // Maps pixel position to world position with max 0.5 offset in x or y direction, x = [0, screenWidth), y = [0, screenHeight)
-        public Vector3 GetRandomizedPixelPos(int x, int y)
+        public Vector3 GetRandomizedPixelPos(int x, int y, int index = 0)
         {
-            float u = (1f / (screenWidth - 1)) * (x - 0.5f + Calc.Random());
-            float v = (1f / (screenHeight - 1)) * (y - 0.5f + Calc.Random());
-            return GetPointPos(u, v);
+
+            float u = Calc.Random();
+            float v = Calc.Random();
+            if (stratification)
+            {
+                u = (index % strata) * invStrata + u * invStrata;
+                v = (index / strata) * invStrata + v * invStrata;
+            }
+            return GetPointPos(widthPerPixel * (x + u), heightPerPixel * (y + v));
         }
 
-        public Ray GetPointRay(float u, float v)
+        public Ray GetPixelRay(int x, int y, int index = 0)
         {
-            Vector3 point = GetPointPos(u, v);
-            Vector3 rayDir = (point - position).Normalized();
-            return new Ray(position, rayDir);
-        }
-
-        public Ray GetPixelRay(int x, int y)
-        {
-            Vector3 point = GetPixelPos(x, y);
+            Vector3 point = GetPixelPos(x, y, index);
             Vector3 rayDir = (point - position).Normalized();
             return new Ray(position, rayDir);
         }
@@ -175,14 +196,14 @@ namespace Lighthouse3
             Ray[] rays = new Ray[rayCount];
             for (int i = 0; i < rayCount; i++)
             {
-                rays[i] = GetPixelRay(x, y);
+                rays[i] = GetPixelRay(x, y, i);
             }
             return rays;
         }
 
-        public Ray GetRandomizedPixelRay(int x, int y)
+        public Ray GetRandomizedPixelRay(int x, int y, int index = 0)
         {
-            Vector3 point = GetRandomizedPixelPos(x, y);
+            Vector3 point = GetRandomizedPixelPos(x, y, index);
             Vector3 rayDir = (point - position).Normalized();
             return new Ray(position, rayDir);
         }
@@ -192,7 +213,7 @@ namespace Lighthouse3
             Ray[] rays = new Ray[rayCount];
             for (int i = 0; i < rayCount; i++)
             {
-                rays[i] = GetRandomizedPixelRay(x, y);
+                rays[i] = GetRandomizedPixelRay(x, y, i);
             }
             return rays;
         }
@@ -363,7 +384,7 @@ namespace Lighthouse3
             position = position + direction * movement;
         }
 
-        public Vector2 BarrelDistortion(float u, float v)
+        public Vector2 DistortPointPos(float u, float v)
         {
             u = u * 2 - 1;
             v = v * 2 - 1;
@@ -371,25 +392,8 @@ namespace Lighthouse3
 
             float rSquared = (u * u) + (v * v);
 
-            u = u * (1 + barrelDistortion * rSquared);
-            v = v * (1 + barrelDistortion * rSquared);
-
-            u = (u + 1) / 2;
-            v = (v + 1) / 2;
-
-            return new Vector2(u, v);
-        }
-
-        public Vector2 PinDistortion(float u, float v)
-        {
-            u = u * 2 - 1;
-            v = v * 2 - 1;
-
-
-            float rSquared = (u * u) + (v * v);
-
-            u = u * (1 - pinDistortion * rSquared);
-            v = v * (1 - pinDistortion * rSquared);
+            u = u * (1 + distortion * rSquared);
+            v = v * (1 + distortion * rSquared);
 
             u = (u + 1) / 2;
             v = (v + 1) / 2;

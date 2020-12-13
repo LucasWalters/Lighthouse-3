@@ -39,8 +39,8 @@ namespace Lighthouse3
                     antiAliasing: false,
                     vignettingFactor: 2f,
                     gammaCorrection: false,
-                    barrelDistortion: 0f, // Only if projection is set to BarrelDistortion
-                    pinDistortion: 0f  // Only if projection is set to PinDistortion
+                    distortion: 0f, // Only if projection is set to Distortion
+                    stratification: true
                 );
             scene.backgroundColor = Color.Black;
 
@@ -68,14 +68,14 @@ namespace Lighthouse3
                     antiAliasing: true,
                     vignettingFactor: 2f,
                     gammaCorrection: false,
-                    barrelDistortion: 0f, // Only if projection is set to BarrelDistortion
-                    pinDistortion: 0f  // Only if projection is set to PinDistortion
+                    distortion: 0f, // Only if projection is set to Distortion
+                    stratification: false
                 );
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
             {
                 //new PointLight(new Vector3(0, 10, -5), Color.White, 500f),
-                new AreaLight(new Vector3(20,10,20), new Vector3(-20,10,20), new Vector3(20,10,-20),  Color.White, 0.0015f),
+                new AreaLight(new Vector3(10,6,10), new Vector3(-10,6,10), new Vector3(10,6,-10),  Color.White, 0.01f),
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
@@ -110,8 +110,8 @@ namespace Lighthouse3
                      antiAliasing: true,
                      vignettingFactor: 2f,
                      gammaCorrection: false,
-                     barrelDistortion: 0f, // Only if projection is set to BarrelDistortion
-                     pinDistortion: 0f  // Only if projection is set to PinDistortion
+                    distortion: 0f, // Only if projection is set to Distortion
+                    stratification: true
                  );
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
