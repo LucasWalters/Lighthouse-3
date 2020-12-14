@@ -307,6 +307,8 @@ namespace Lighthouse3
 
         public void DebugRay(Scene scene, int x, int y)
         {
+            if (x <= 0 || y <= 0)
+                return;
             Vector3 color = pixelColors[x + y * screenWidth];
             if (raysPerPixel > 1)
             {
@@ -334,7 +336,7 @@ namespace Lighthouse3
             if (rayTracer == RayTracer.Kajiya)
                 return Kajiya.TraceRay(ray, scene, debug: debug);
             if (rayTracer == RayTracer.PathTracer)
-                return PathTracer.TraceRay(ray, scene, true, debug: debug);
+                return PathTracer.TraceRay(ray, scene, debug: debug);
             return Color.Black;
         }
 

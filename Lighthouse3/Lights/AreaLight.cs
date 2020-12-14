@@ -19,7 +19,7 @@ namespace Lighthouse3.Lights
             rect = new Rectangle(topLeft, topRight, bottomLeft, mat);
         }
 
-        private Vector3 RandomPointOnLight()
+        public Vector3 RandomPointOnLight()
         {
             float u = Calc.Random();
             float v = Calc.Random();
@@ -47,8 +47,9 @@ namespace Lighthouse3.Lights
 
             // light is visible (V(p,p’)=1); calculate transport
             float solidAngle = (cos_o * rect.area) / (dist * dist);
+            float lightPDF = 1f / solidAngle;
             // Multiply result with the number of lights in the scene
-            return color * solidAngle * cos_i * intensity;
+            return color * (cos_i / lightPDF) * intensity;
         }
     }
 }
