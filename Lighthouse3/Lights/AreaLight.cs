@@ -1,4 +1,5 @@
 ﻿using Lighthouse3.Primitives;
+using Lighthouse3.Scenes;
 using OpenTK;
 using OpenTK.Graphics;
 using System;

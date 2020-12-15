@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lighthouse3.Scene
+namespace Lighthouse3.Scenes
 {
     public class Scene
     {

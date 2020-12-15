@@ -4,7 +4,7 @@ using Lighthouse3.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace Lighthouse3.Scene
+namespace Lighthouse3.Scenes
 {
     public class StandardScenes
     {

@@ -1,4 +1,5 @@
 ﻿using Lighthouse3.Lights;
+using Lighthouse3.Scenes;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -69,6 +70,7 @@ namespace Lighthouse3.RayTracers
                     //totalEnergy += totalColor * BRDF * light.DirectIllumination(intersection, normal, scene, debug) * nrLights;
 
 
+                    // Direct Illumination
                     Vector3 intersectionPoint = ray.GetPoint(intersection.distance);
                     Vector3 randomPoint = light.RandomPointOnLight();
                     Vector3 toLight = randomPoint - intersectionPoint;
@@ -93,10 +95,15 @@ namespace Lighthouse3.RayTracers
                         }
                     }
 
+                    // Russian Roulette
+                    float survivalChance = Calc.Clamp(Calc.Max(material.color.X, Calc.Max(material.color.Y, material.color.Z)));
+                    if (Calc.Random() > survivalChance)
+                        break;
+
                     ray = ray.RandomReflectCosineWeighted(intersection.distance, normal);
                     float nDotR = Vector3.Dot(normal, ray.direction);
                     float PDF = nDotR * Calc.InvPi;
-                    totalColor *= BRDF * nDotR / PDF;
+                    totalColor *= (1f / survivalChance) * BRDF * nDotR / PDF;
                     sampleLight = false;
                 }
                 //Handle specularity

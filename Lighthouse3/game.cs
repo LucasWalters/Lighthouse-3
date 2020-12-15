@@ -8,6 +8,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using Lighthouse3.Primitives;
+using Lighthouse3.Scenes;
 
 namespace Lighthouse3 {
 

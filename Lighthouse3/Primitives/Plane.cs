@@ -40,5 +40,10 @@ namespace Lighthouse3.Primitives
         {
             return normal;
         }
+
+        public override Vector3 Center()
+        {
+            return position;
+        }
     }
 }

@@ -7,6 +7,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using Lighthouse3.RayTracers;
 using System.Threading;
+using Lighthouse3.Scenes;
 
 namespace Lighthouse3
 {

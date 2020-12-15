@@ -47,5 +47,10 @@ namespace Lighthouse3.Primitives
         {
             return Vector3.Cross(p1 - p0, p2 - p0).Normalized();
         }
+
+        public override Vector3 Center()
+        {
+            return (p0 + p1 + p2) / 3f;
+        }
     }
 }

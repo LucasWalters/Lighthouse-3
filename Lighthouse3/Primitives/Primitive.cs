@@ -21,5 +21,7 @@ namespace Lighthouse3.Primitives
         public abstract bool Intersect(Ray ray, out float t);
 
         public abstract Vector3 Normal(Intersection intersection = null);
+
+        public abstract Vector3 Center();
     }
 }

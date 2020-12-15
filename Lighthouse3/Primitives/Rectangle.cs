@@ -61,5 +61,10 @@ namespace Lighthouse3.Primitives
         {
             return normal;
         }
+
+        public override Vector3 Center()
+        {
+            return topLeft + side1 * 0.5f + side2 * 0.5f;
+        }
     }
 }
