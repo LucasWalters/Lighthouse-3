@@ -15,23 +15,17 @@ namespace Lighthouse3.BVH
 
         public AABB(Primitive[] primitives)
         {
-            min = Vector3.Zero;
-            max = Vector3.Zero;
-            for (int i = 0; i < primitives.Length; i++)
+            min = primitives[0].Min();
+            max = primitives[0].Max();
+            for (int i = 1; i < primitives.Length; i++)
             {
                 Vector3 newMin = primitives[i].Min();
                 Vector3 newMax = primitives[i].Max();
-                if (i == 0)
-                {
-                    min = newMin;
-                    max = newMax;
-                    continue;
-                }
                 for (int j = 0; j < 3; j++)
                 {
                     if (newMin[j] < min[j])
                         min[j] = newMin[j];
-                    if (newMax[j] < max[j])
+                    if (newMax[j] > max[j])
                         max[j] = newMax[j];
                 }
             }
