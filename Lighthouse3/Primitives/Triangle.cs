@@ -52,5 +52,31 @@ namespace Lighthouse3.Primitives
         {
             return (p0 + p1 + p2) / 3f;
         }
+
+        public override Vector3 Min()
+        {
+            Vector3 min = p0;
+            for (int i = 0; i < 3; i++)
+            {
+                if (p1[i] < min[i])
+                    min[i] = p1[i];
+                if (p2[i] < min[i])
+                    min[i] = p2[i];
+            }
+            return min;
+        }
+
+        public override Vector3 Max()
+        {
+            Vector3 max = p0;
+            for (int i = 0; i < 3; i++)
+            {
+                if (p1[i] > max[i])
+                    max[i] = p1[i];
+                if (p2[i] > max[i])
+                    max[i] = p2[i];
+            }
+            return max;
+        }
     }
 }

@@ -23,5 +23,9 @@ namespace Lighthouse3.Primitives
         public abstract Vector3 Normal(Intersection intersection = null);
 
         public abstract Vector3 Center();
+
+        public abstract Vector3 Min();
+
+        public abstract Vector3 Max();
     }
 }

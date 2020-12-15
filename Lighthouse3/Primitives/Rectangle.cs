@@ -66,5 +66,39 @@ namespace Lighthouse3.Primitives
         {
             return topLeft + side1 * 0.5f + side2 * 0.5f;
         }
+
+        public override Vector3 Min()
+        {
+            Vector3 bottomRight = bottomLeft + side1;
+
+            Vector3 min = topLeft;
+            for (int i = 0; i < 3; i++)
+            {
+                if (topRight[i] < min[i])
+                    min[i] = topRight[i];
+                if (bottomLeft[i] < min[i])
+                    min[i] = bottomLeft[i];
+                if (bottomRight[i] < min[i])
+                    min[i] = bottomRight[i];
+            }
+            return min;
+        }
+
+        public override Vector3 Max()
+        {
+            Vector3 bottomRight = bottomLeft + side1;
+
+            Vector3 max = topLeft;
+            for (int i = 0; i < 3; i++)
+            {
+                if (topRight[i] > max[i])
+                    max[i] = topRight[i];
+                if (bottomLeft[i] > max[i])
+                    max[i] = bottomLeft[i];
+                if (bottomRight[i] > max[i])
+                    max[i] = bottomRight[i];
+            }
+            return max;
+        }
     }
 }

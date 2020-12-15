@@ -58,5 +58,15 @@ namespace Lighthouse3.Primitives
         {
             return position;
         }
+
+        public override Vector3 Min()
+        {
+            return position - new Vector3(radius, radius, radius);
+        }
+
+        public override Vector3 Max()
+        {
+            return position + new Vector3(radius, radius, radius);
+        }
     }
 }

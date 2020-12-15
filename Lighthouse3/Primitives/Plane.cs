@@ -45,5 +45,15 @@ namespace Lighthouse3.Primitives
         {
             return position;
         }
+
+        public override Vector3 Min()
+        {
+            throw new InvalidOperationException();
+        }
+
+        public override Vector3 Max()
+        {
+            throw new InvalidOperationException();
+        }
     }
 }
