@@ -1,26 +1,13 @@
-﻿using Lighthouse3.Lights;
+﻿using System;
+using Lighthouse3.Lights;
 using Lighthouse3.Primitives;
-using ObjLoader.Loader.Data.Elements;
-using ObjLoader.Loader.Loaders;
 using OpenTK;
 using OpenTK.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Lighthouse3
+namespace Lighthouse3.Scene
 {
-    public class Scene
+    public class StandardScenes
     {
-        public Camera mainCamera;
-        public Vector3 backgroundColor;
-        public Light[] lights;
-        public Primitive[] primitives;
-
-        public static Scene CURRENT_SCENE = KajiyaScene();
-
         // Scene with an "impossible" triangle tried to put into a persepctive where it actually looks impossible
         public static Scene OBJScene()
         {
@@ -45,9 +32,9 @@ namespace Lighthouse3
             scene.backgroundColor = Color.Black;
 
             if (rayTracer == RayTracers.RayTracer.Whitted)
-               scene.lights = new Light[] { new PointLight(new Vector3(-8, 5, -9), Color.White, 300f) };
+                scene.lights = new Light[] { new PointLight(new Vector3(-8, 5, -9), Color.White, 300f) };
             else
-               scene.lights = new Light[] { new AreaLight(new Vector3(20,10,20), new Vector3(-20,10,20), new Vector3(20,10,-20),  Color.White, 0.2f)};
+                scene.lights = new Light[] { new AreaLight(new Vector3(20, 10, 20), new Vector3(-20, 10, 20), new Vector3(20, 10, -20), Color.White, 0.2f) };
 
             scene.primitives = ObjectLoader.GetObjTriangles("../../assets/impossible_triangle.obj");
             return scene;
@@ -124,8 +111,8 @@ namespace Lighthouse3
             checkerboard.isCheckerboard = true;
 
             scene.primitives = new Primitive[]
-            { 
-				new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
+            {
+                new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
                 new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), checkerboard),
                 new Plane(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
                 new Plane(new Vector3(0, -1f, 0), new Vector3(0, 1, 0), checkerboard),
@@ -135,7 +122,7 @@ namespace Lighthouse3
                 new Sphere(new Vector3(2, 0, 3), 1f, Material.Yellow),
                 new Sphere(new Vector3(3, 0, 1), 1f, Material.Mirror),
                 new Sphere(new Vector3(-1, 0, 2), 1f, Material.Glass),
-			};
+            };
 
             return scene;
 

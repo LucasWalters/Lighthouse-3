@@ -65,7 +65,6 @@
     <Compile Include="Ray.cs" />
     <Compile Include="RayTracers\Kajiya.cs" />
     <Compile Include="RayTracers\RayTracer.cs" />
-    <Compile Include="Scene.cs" />
     <Compile Include="surface.cs" />
     <Compile Include="template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,9 +72,16 @@
     <Compile Include="Color.cs" />
     <Compile Include="RayTracers\Whitted.cs" />
     <Compile Include="RayTracers\PathTracer.cs" />
+    <Compile Include="BVH\BVHNode.cs" />
+    <Compile Include="Scene\Scene.cs" />
+    <Compile Include="Scene\StandardScenes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="BVH\" />
+    <Folder Include="Scene\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
