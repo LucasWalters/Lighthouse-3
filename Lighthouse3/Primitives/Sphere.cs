@@ -9,14 +9,12 @@ namespace Lighthouse3.Primitives
         public Vector3 position;
         public float radius;
         public float radiusSquared;
-        public bool inverted;
 
-        public Sphere(Vector3 position, float radius, Material material, bool inverted = false) : base(material)
+        public Sphere(Vector3 position, float radius, Material material) : base(material)
         {
             this.position = position;
             this.radius = radius;
             radiusSquared = radius * radius;
-            this.inverted = inverted;
         }
 
         // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
@@ -51,7 +49,7 @@ namespace Lighthouse3.Primitives
 
         public override Vector3 Normal(Intersection intersection = null)
         {
-            return (intersection.ray.GetPoint(intersection.distance) - position).Normalized() * (inverted ? -1 : 1);
+            return (intersection.ray.GetPoint(intersection.distance) - position).Normalized();
         }
 
         public override Vector3 Center()

@@ -56,12 +56,12 @@ namespace Lighthouse3.Primitives
         public override Vector3 Min()
         {
             Vector3 min = p0;
-            for (int i = 0; i < 3; i++)
+            for (int xyz = 0; xyz < 3; xyz++)
             {
-                if (p1[i] < min[i])
-                    min[i] = p1[i];
-                if (p2[i] < min[i])
-                    min[i] = p2[i];
+                if (p1[xyz] < min[xyz])
+                    min[xyz] = p1[xyz];
+                if (p2[xyz] < min[xyz])
+                    min[xyz] = p2[xyz];
             }
             return min;
         }
@@ -69,12 +69,12 @@ namespace Lighthouse3.Primitives
         public override Vector3 Max()
         {
             Vector3 max = p0;
-            for (int i = 0; i < 3; i++)
+            for (int xyz = 0; xyz < 3; xyz++)
             {
-                if (p1[i] > max[i])
-                    max[i] = p1[i];
-                if (p2[i] > max[i])
-                    max[i] = p2[i];
+                if (p1[xyz] > max[xyz])
+                    max[xyz] = p1[xyz];
+                if (p2[xyz] > max[xyz])
+                    max[xyz] = p2[xyz];
             }
             return max;
         }

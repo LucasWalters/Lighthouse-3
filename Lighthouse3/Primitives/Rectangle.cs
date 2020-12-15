@@ -72,14 +72,14 @@ namespace Lighthouse3.Primitives
             Vector3 bottomRight = bottomLeft + side1;
 
             Vector3 min = topLeft;
-            for (int i = 0; i < 3; i++)
+            for (int xyz = 0; xyz < 3; xyz++)
             {
-                if (topRight[i] < min[i])
-                    min[i] = topRight[i];
-                if (bottomLeft[i] < min[i])
-                    min[i] = bottomLeft[i];
-                if (bottomRight[i] < min[i])
-                    min[i] = bottomRight[i];
+                if (topRight[xyz] < min[xyz])
+                    min[xyz] = topRight[xyz];
+                if (bottomLeft[xyz] < min[xyz])
+                    min[xyz] = bottomLeft[xyz];
+                if (bottomRight[xyz] < min[xyz])
+                    min[xyz] = bottomRight[xyz];
             }
             return min;
         }
@@ -89,14 +89,14 @@ namespace Lighthouse3.Primitives
             Vector3 bottomRight = bottomLeft + side1;
 
             Vector3 max = topLeft;
-            for (int i = 0; i < 3; i++)
+            for (int xyz = 0; xyz < 3; xyz++)
             {
-                if (topRight[i] > max[i])
-                    max[i] = topRight[i];
-                if (bottomLeft[i] > max[i])
-                    max[i] = bottomLeft[i];
-                if (bottomRight[i] > max[i])
-                    max[i] = bottomRight[i];
+                if (topRight[xyz] > max[xyz])
+                    max[xyz] = topRight[xyz];
+                if (bottomLeft[xyz] > max[xyz])
+                    max[xyz] = bottomLeft[xyz];
+                if (bottomRight[xyz] > max[xyz])
+                    max[xyz] = bottomRight[xyz];
             }
             return max;
         }
