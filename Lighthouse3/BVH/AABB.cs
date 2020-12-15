@@ -25,7 +25,7 @@ namespace Lighthouse3.BVH
                 {
                     if (newMin[j] < min[j])
                         min[j] = newMin[j];
-                    if (newMax[j] < max[j])
+                    if (newMax[j] > max[j])
                         max[j] = newMax[j];
                 }
             }
