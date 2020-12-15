@@ -22,25 +22,22 @@ namespace Lighthouse3.Scenes
         public Primitive[] primitives;
         public static Scene CURRENT_SCENE = StandardScenes.KajiyaScene();
 
-        public BVHNode[] pool;
+        public BVHNode[] nodes;
         
         public void CalculateBVH()
         {
             int N = primitives.Length;
-            uint[] indices = new uint[N];
-            for (uint i = 0; i < N; i++)
+            int[] indices = new int[N];
+            for (int i = 0; i < N; i++)
                 indices[i] = i;
 
-            pool = new BVHNode[N * 2 - 1];
-            int poolPointer = 2;
+            nodes = new BVHNode[N * 2 - 1];
 
-            pool[0].leftFirst = 0;
-            pool[0].count = N;
-            pool[0].bounds = new AABB(primitives);
-
-            pool[0].primitives = primitives; // Optimize later
-
-            pool[0].Subdivide(poolPointer, indices, pool); // poolpointer is always 2?
+            nodes[0].firstOrLeft = 0;
+            nodes[0].count = N;
+            nodes[0].bounds = new AABB(primitives);
+            int index = 1; // Index to first child node
+            nodes[0].Subdivide(primitives, indices, nodes, ref index); // poolpointer is always 2?
         }
     }
     

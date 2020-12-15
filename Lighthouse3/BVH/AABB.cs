@@ -45,30 +45,30 @@ namespace Lighthouse3.BVH
             float yLength = max.Y - min.Y;
             float zLength = max.Z - min.Z;
 
-            if (xLength >= yLength && xLength >= zLength)
+            if (xLength > yLength && xLength > zLength)
             {
                 //Split along x_axis
                 newAABBs[0].min = min;
-                newAABBs[0].max = new Vector3(max.X - (xLength / 2), max.Y, max.Z);
-                newAABBs[1].min = new Vector3(min.X + (xLength / 2), min.Y, min.Z);
+                newAABBs[0].max = new Vector3(max.X - (xLength / 2f), max.Y, max.Z);
+                newAABBs[1].min = new Vector3(min.X + (xLength / 2f), min.Y, min.Z);
                 newAABBs[1].max = max;
             }
 
-            if (yLength >= xLength && yLength >= zLength)
+            else if (yLength > zLength)
             {
                 //Split along y_axis
                 newAABBs[0].min = min;
-                newAABBs[0].max = new Vector3(max.X, max.Y - (yLength / 2), max.Z);
-                newAABBs[1].min = new Vector3(min.X, min.Y + (yLength / 2), min.Z);
+                newAABBs[0].max = new Vector3(max.X, max.Y - (yLength / 2f), max.Z);
+                newAABBs[1].min = new Vector3(min.X, min.Y + (yLength / 2f), min.Z);
                 newAABBs[1].max = max;
             }
 
-            if (zLength >= xLength && zLength >= yLength)
+            else
             {
                 //Split along z_axis
                 newAABBs[0].min = min;
-                newAABBs[0].max = new Vector3(max.X, max.Y, max.Z - (zLength / 2));
-                newAABBs[1].min = new Vector3(min.X, min.Y, min.Z + (zLength / 2));
+                newAABBs[0].max = new Vector3(max.X, max.Y, max.Z - (zLength / 2f));
+                newAABBs[1].min = new Vector3(min.X, min.Y, min.Z + (zLength / 2f));
                 newAABBs[1].max = max;
             }
             return newAABBs;
@@ -76,8 +76,9 @@ namespace Lighthouse3.BVH
 
         public bool Contains(Vector3 p)
         {
-            //TODO
-            return false;
+            return 
+                min.X <= p.X && min.Y <= p.Y && min.Z <= p.Z &&
+                max.X >= p.X && max.Y >= p.Y && max.Z >= p.Z;
         }
     }
 }

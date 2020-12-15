@@ -7,47 +7,62 @@ namespace Lighthouse3.BVH
     public struct BVHNode
     {
         public AABB bounds;
-        public int leftFirst;
+        public int firstOrLeft;
         public int count;
-        public Primitive[] primitives;
+
+        public static readonly int MaxPrimsPerNode = 3;
+
+        private void Swap (Primitive[] primitives, int i, int j)
+        {
+            Primitive temp = primitives[i];
+            primitives[i] = primitives[j];
+            primitives[j] = temp;
+        }
 
         // TODO: poolpointer needs to be static along all calls of Subdivide
-        public void Subdivide(int poolPointer, uint[] indices, BVHNode[] pool)
+        public void Subdivide(Primitive[] primitives, int[] indices, BVHNode[] nodes, ref int nodeIndex)
         {
-            if (count > 3) return;
-            this.leftFirst = poolPointer++;
-            poolPointer++; // Poolpointer needs to be incremented twice to account for the value on the right
+            if (count < MaxPrimsPerNode) return;
 
             // Split AABB and assign left and right
             AABB[] newAABBs = bounds.SplitAABB();
-            pool[leftFirst].bounds = newAABBs[0];
-            pool[leftFirst + 1].bounds = newAABBs[1];
-
-
-            // Partition
-            Primitive[] leftPrimitives = new Primitive[primitives.Length / 2 + 1];
-            Primitive[] rightPrimitives = new Primitive[primitives.Length / 2 + 1];
-
-            for (int i = 0; i < primitives.Length; i++)
+            nodes[nodeIndex].bounds = newAABBs[0];
+            nodes[nodeIndex + 1].bounds = newAABBs[1];
+            
+            // Sort primitives based on whether they are in the left bounds or not
+            int[] sorted = new int[count];
+            int countLeft = 0;
+            int countRight = count-1;
+            for (int i = 0; i < count; i++)
             {
-                if (pool[leftFirst].bounds.Contains(primitives[i].Center()))
-                {
-                    leftPrimitives[i] = primitives[i];
-                } else
-                {
-                    rightPrimitives[i] = primitives[i];
-                }
+                bool left = newAABBs[0].Contains(primitives[firstOrLeft + i].Center());
+                if (left)
+                    sorted[countLeft++] = firstOrLeft + i;
+                else
+                    sorted[countRight--] = firstOrLeft + i;
             }
-            pool[leftFirst].primitives = leftPrimitives;
-            pool[leftFirst].count = leftPrimitives.Length;;
-            pool[leftFirst + 1].primitives = rightPrimitives;
-            pool[leftFirst + 1].count = rightPrimitives.Length;
 
-            pool[leftFirst].Subdivide(poolPointer, indices, pool);
-            pool[leftFirst+1].Subdivide(poolPointer, indices, pool);
+            // Overwrite primitives in global array with sorted ones
+            for (int i = 0; i < count; i++)
+            {
+                indices[firstOrLeft + i] = sorted[i];
+            }
+
+            // Give first index and count to child nodes
+            nodes[nodeIndex].firstOrLeft = firstOrLeft;
+            nodes[nodeIndex].count = countLeft;
+            nodes[nodeIndex + 1].firstOrLeft = firstOrLeft + countLeft;
+            nodes[nodeIndex + 1].count = count - countLeft;
+
+            // first is now left and count is 0 because we no longer have primitives
+            firstOrLeft = nodeIndex;
+            count = 0;
+
+            // Recursively subdivide child nodes while keeping track of the nodeIndex
+            int newIndex = nodeIndex + 2;
+            nodes[nodeIndex].Subdivide(primitives, indices, nodes, ref newIndex);
+            nodes[nodeIndex + 1].Subdivide(primitives, indices, nodes, ref newIndex);
+            nodeIndex = newIndex;
         }
-        
     }
-
-    
 }

@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BVH\AABB.cs" />
     <Compile Include="Calc.cs" />
     <Compile Include="game.cs" />
     <Compile Include="Camera.cs" />
