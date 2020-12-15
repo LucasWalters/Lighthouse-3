@@ -6,6 +6,7 @@ using ObjLoader.Loader.Loaders;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,14 +20,10 @@ namespace Lighthouse3.Scenes
         public Vector3 backgroundColor;
         public Light[] lights;
         public Primitive[] primitives;
-
         public static Scene CURRENT_SCENE = StandardScenes.KajiyaScene();
 
-
-        public BVHNode[] nodes;
-
-
-
+        public BVHNode[] pool;
+        
         public void CalculateBVH()
         {
             int N = primitives.Length;
@@ -34,7 +31,17 @@ namespace Lighthouse3.Scenes
             for (uint i = 0; i < N; i++)
                 indices[i] = i;
 
-            nodes = new BVHNode[N * 2 - 1];
+            pool = new BVHNode[N * 2 - 1];
+            int poolPointer = 2;
+
+            pool[0].leftFirst = 0;
+            pool[0].count = N;
+            pool[0].bounds = new AABB(primitives);
+
+            pool[0].primitives = primitives; // Optimize later
+
+            pool[0].Subdivide(poolPointer, indices, pool); // poolpointer is always 2?
         }
     }
+    
 }
