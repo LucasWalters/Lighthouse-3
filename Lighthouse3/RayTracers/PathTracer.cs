@@ -23,7 +23,7 @@ namespace Lighthouse3.RayTracers
             float lastRefractiveIndex = Material.RefractiveIndex.Vacuum;
             while (true)
             {
-                Intersection intersection = ray.NearestIntersection(scene);
+                Intersection intersection = ray.NearestIntersection(scene, debug);
                 if (intersection == null)
                 {
                     totalEnergy += totalColor * scene.backgroundColor;

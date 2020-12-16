@@ -6,6 +6,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Lighthouse3
 {
@@ -28,7 +29,7 @@ namespace Lighthouse3
             return origin + direction * distance;
         }
 
-        public Intersection NearestIntersection(Scene scene)
+        public Intersection NearestIntersection(Scene scene, bool debug = false)
         {
             Intersection intersection = new Intersection(int.MaxValue, this, null);
             float t;
@@ -46,43 +47,51 @@ namespace Lighthouse3
             }
 
             intersection = scene.hasBVH ? 
-                NearestIntersectionBVH(scene, intersection) : 
+                NearestIntersectionBVH(scene, intersection, debug) : 
                 NearestIntersection(scene.primitives, intersection);
 
             return intersection.hit == null ? null : intersection;
         }
 
-        private Intersection NearestIntersectionBVH(Scene scene, Intersection intersection)
+        private Intersection NearestIntersectionBVH(Scene scene, Intersection intersection, bool debug)
         {
-            return IntersectNode(scene, scene.nodes[0], intersection);
+
+            return IntersectNode(scene, scene.nodes[0], intersection, debug);
         }
 
-        private Intersection IntersectNode(Scene scene, BVHNode node, Intersection intersection)
+        private Intersection IntersectNode(Scene scene, BVHNode node, Intersection intersection, bool debug)
         {
             if (node.bounds.Intersect(this))
             {
                 if (node.count < 0)
                 {
-                    intersection = IntersectNode(scene, scene.nodes[node.firstOrLeft], intersection);
-                    intersection = IntersectNode(scene, scene.nodes[node.firstOrLeft + 1], intersection);
+                    intersection = IntersectNode(scene, scene.nodes[node.firstOrLeft], intersection, debug);
+                    intersection = IntersectNode(scene, scene.nodes[node.firstOrLeft + 1], intersection, debug);
                 }
-                else if (node.count > 0)
+                else
                 {
-                    intersection = NearestIntersection(scene, node.firstOrLeft, node.count, intersection);
+                    intersection = NearestIntersection(scene, node.firstOrLeft, node.count, intersection, debug);
                 }
             }
             return intersection;
         }
 
-        private Intersection NearestIntersection(Scene scene, int first, int count, Intersection intersection)
+        private Intersection NearestIntersection(Scene scene, int first, int count, Intersection intersection, bool debug)
         {
             float t;
-            for (int i = first; i < count; i++)
+            //if (debug)
+            //{
+            //    Console.WriteLine("First: " + first);
+            //    Console.WriteLine("Count: " + count);
+            //    Console.WriteLine(intersection.distance);
+            //}
+            for (int i = 0; i < count; i++)
             {
-                bool intersected = scene.primitives[scene.indices[i]].Intersect(this, out t);
+                int index = scene.indices[first + i];
+                bool intersected = scene.primitives[index].Intersect(this, out t);
                 if (intersected && t < intersection.distance)
                 {
-                    intersection = new Intersection(t, this, scene.primitives[scene.indices[i]]);
+                    intersection = new Intersection(t, this, scene.primitives[index]);
                 }
             }
             return intersection;

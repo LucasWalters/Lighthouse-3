@@ -21,7 +21,7 @@ namespace Lighthouse3.Scenes
         public Light[] lights;
         public Primitive[] primitives;
         public int[] indices;
-        public static Scene CURRENT_SCENE = StandardScenes.OBJScene();
+        //public static Scene CURRENT_SCENE = StandardScenes.OBJScene();
 
         public BVHNode[] nodes;
         public bool hasBVH = false;
@@ -41,7 +41,8 @@ namespace Lighthouse3.Scenes
             int index = 1; // Index to first child node
             nodes[0].Subdivide(primitives, indices, nodes, ref index);
             hasBVH = true;
-            Console.WriteLine("Finished BVH");
+
+            Console.WriteLine("BVH Done");
         }
     }
     

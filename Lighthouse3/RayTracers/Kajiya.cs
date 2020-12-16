@@ -16,7 +16,7 @@ namespace Lighthouse3.RayTracers
         {
 
 
-            Intersection intersection = ray.NearestIntersection(scene);
+            Intersection intersection = ray.NearestIntersection(scene, debug);
             if (intersection == null)
                 return scene.backgroundColor;
 

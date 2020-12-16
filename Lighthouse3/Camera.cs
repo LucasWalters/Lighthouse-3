@@ -300,7 +300,7 @@ namespace Lighthouse3
                     {
                         pixelsChanged = true;
                         rendering = false;
-                        //Console.WriteLine("Frame finished!");
+                        Console.WriteLine("Frame finished!");
                     }
                 });
                 Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));
