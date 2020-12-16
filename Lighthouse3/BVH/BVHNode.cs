@@ -11,7 +11,7 @@ namespace Lighthouse3.BVH
         public int count;
 
 
-        public static readonly int MaxPrimsPerNode = 20;
+        public static readonly int MaxPrimsPerNode = 3;
 
         private void Swap (Primitive[] primitives, int i, int j)
         {

@@ -45,11 +45,11 @@ namespace Lighthouse3.Scenes
         public static Scene TeapotScene()
         {
             Scene scene = new Scene();
-            RayTracers.RayTracer rayTracer = RayTracers.RayTracer.Whitted;
+            RayTracers.RayTracer rayTracer = RayTracers.RayTracer.PathTracer;
 
             scene.mainCamera =
                 new Camera(
-                    position: new Vector3(0, 0, -5),
+                    position: new Vector3(0, 1, -5),
                     direction: new Vector3(0, 0, 1),
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
                     projection: Camera.ProjectionType.Perspective,
@@ -67,7 +67,7 @@ namespace Lighthouse3.Scenes
             if (rayTracer == RayTracers.RayTracer.Whitted)
                 scene.lights = new Light[] { new PointLight(new Vector3(0, 5, 0), Color.White, 1f) };
             else
-                scene.lights = new Light[] { new AreaLight(new Vector3(20, 10, 20), new Vector3(-20, 10, 20), new Vector3(20, 10, -20), Color.White, 0.2f) };
+                scene.lights = new Light[] { new AreaLight(new Vector3(10, 6, 10), new Vector3(-10, 6, 10), new Vector3(10, 6, -10), Color.White, 0.5f) };
 
             scene.primitives = ObjectLoader.GetObjTriangles("../../assets/teapot.obj");
             scene.CalculateBVH();

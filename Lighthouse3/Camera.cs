@@ -8,6 +8,7 @@ using OpenTK.Input;
 using Lighthouse3.RayTracers;
 using System.Threading;
 using Lighthouse3.Scenes;
+using System.Diagnostics;
 
 namespace Lighthouse3
 {
@@ -66,6 +67,7 @@ namespace Lighthouse3
 
         float widthPerPixel;
         float heightPerPixel;
+        Stopwatch stopwatch;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
@@ -265,6 +267,7 @@ namespace Lighthouse3
             if (rendering)
                 return;
             rendering = true;
+            stopwatch = Stopwatch.StartNew();
             if (resetFrame)
             {
                 pixelColors = new Vector3[screenWidth * screenHeight];
@@ -274,6 +277,8 @@ namespace Lighthouse3
             if (numberOfThreads < 2)
             {
                 Frame(scene);
+                stopwatch.Stop();
+                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds);
                 return;
             }
             threadsFinished = 0;
@@ -300,7 +305,8 @@ namespace Lighthouse3
                     {
                         pixelsChanged = true;
                         rendering = false;
-                        Console.WriteLine("Frame finished!");
+                        stopwatch.Stop();
+                        Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds);
                     }
                 });
                 Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));
