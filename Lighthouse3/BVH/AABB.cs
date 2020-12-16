@@ -80,5 +80,26 @@ namespace Lighthouse3.BVH
                 min.X <= p.X && min.Y <= p.Y && min.Z <= p.Z &&
                 max.X >= p.X && max.Y >= p.Y && max.Z >= p.Z;
         }
+
+        public bool Intersect(Ray ray)
+        {
+            for (int xyz = 0; xyz < 3; xyz++)
+            {
+                float invD = 1f / ray.direction[xyz];
+                float t0 = (min[xyz] - ray.origin[xyz]) * invD;
+                float t1 = (max[xyz] - ray.origin[xyz]) * invD;
+
+                if (invD < 0)
+                {
+                    float temp = t1;
+                    t1 = t0;
+                    t0 = temp;
+                }
+
+                if (t1 <= t0)
+                    return false;
+            }
+            return true;
+        }
     }
 }

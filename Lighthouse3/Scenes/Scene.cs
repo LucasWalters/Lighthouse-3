@@ -20,14 +20,16 @@ namespace Lighthouse3.Scenes
         public Vector3 backgroundColor;
         public Light[] lights;
         public Primitive[] primitives;
-        public static Scene CURRENT_SCENE = StandardScenes.KajiyaScene();
+        public int[] indices;
+        public static Scene CURRENT_SCENE = StandardScenes.OBJScene();
 
         public BVHNode[] nodes;
+        public bool hasBVH = false;
         
         public void CalculateBVH()
         {
             int N = primitives.Length;
-            int[] indices = new int[N];
+            indices = new int[N];
             for (int i = 0; i < N; i++)
                 indices[i] = i;
 
@@ -37,7 +39,9 @@ namespace Lighthouse3.Scenes
             nodes[0].count = N;
             nodes[0].bounds = new AABB(primitives);
             int index = 1; // Index to first child node
-            nodes[0].Subdivide(primitives, indices, nodes, ref index); // poolpointer is always 2?
+            nodes[0].Subdivide(primitives, indices, nodes, ref index);
+            hasBVH = true;
+            Console.WriteLine("Finished BVH");
         }
     }
     

@@ -258,14 +258,10 @@ namespace Lighthouse3
                 }
             }
             pixelsChanged = true;
+            rendering = false;
         }
         public void MultithreadedFrame(Scene scene)
         {
-            if (numberOfThreads < 2)
-            {
-                Frame(scene);
-                return;
-            }
             if (rendering)
                 return;
             rendering = true;
@@ -274,6 +270,11 @@ namespace Lighthouse3
                 pixelColors = new Vector3[screenWidth * screenHeight];
                 frames = 0;
                 resetFrame = false;
+            }
+            if (numberOfThreads < 2)
+            {
+                Frame(scene);
+                return;
             }
             threadsFinished = 0;
 
@@ -299,6 +300,7 @@ namespace Lighthouse3
                     {
                         pixelsChanged = true;
                         rendering = false;
+                        //Console.WriteLine("Frame finished!");
                     }
                 });
                 Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));
