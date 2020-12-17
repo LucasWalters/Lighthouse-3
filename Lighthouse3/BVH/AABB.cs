@@ -114,9 +114,9 @@ namespace Lighthouse3.BVH
                 float leftCostY = (min.X + primitiveCenter.X) * (min.Z + primitiveCenter.Z) * primitivesLeft;
                 float rightCostY = (max.X - primitiveCenter.X) * (max.Z - primitiveCenter.Z) * primitivesRight;
 
-                if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
+                if (leftCostY + rightCostY < parentNodeCostY && leftCostY + rightCostY < currentOptimal)
                 {
-                    currentOptimal = leftCostX + rightCostX;
+                    currentOptimal = leftCostY + rightCostY;
                     optimalAABBs = newAABBs;
                 }
 
@@ -133,9 +133,9 @@ namespace Lighthouse3.BVH
                 float rightCostZ = (max.X - primitiveCenter.X) * (max.Y - primitiveCenter.Y) * primitivesLeft;
                 float leftCostZ = (min.X + primitiveCenter.X) * (min.Y + primitiveCenter.Y) * primitivesRight;
 
-                if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
+                if (leftCostZ + rightCostZ < parentNodeCostZ && leftCostZ + rightCostZ < currentOptimal)
                 {
-                    currentOptimal = leftCostX + rightCostX;
+                    currentOptimal = leftCostZ + rightCostZ;
                     optimalAABBs = newAABBs;
                 }
             }
