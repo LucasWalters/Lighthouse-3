@@ -25,7 +25,7 @@ namespace Lighthouse3.BVH
             if (count <= MaxPrimsPerNode) return;
 
             //TODO split place instead of AABB
-            AABB[] newAABBs = bounds.SplitAABB();
+            AABB[] newAABBs = bounds.SplitAABB(primitives);
             //Console.WriteLine("Bounds: " + bounds.min + ", " + bounds.max);
             //Console.WriteLine("Left: " + newAABBs[0].min + ", " + newAABBs[0].max);
             //Console.WriteLine("Right: " + newAABBs[1].min + ", " + newAABBs[1].max);

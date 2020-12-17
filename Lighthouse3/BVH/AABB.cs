@@ -62,41 +62,76 @@ namespace Lighthouse3.BVH
             return this;
         }
 
-        public AABB[] SplitAABB()
+        public AABB[] SplitAABB(Primitive[] primitives)
         {
             AABB[] newAABBs = new AABB[2];
+            AABB[] optimalAABBs = new AABB[2];
 
             float xLength = max.X - min.X;
             float yLength = max.Y - min.Y;
             float zLength = max.Z - min.Z;
+            
+            float primitiveCount = primitives.Length;
 
-            if (xLength > yLength && xLength > zLength)
+            float parentNodeCostX = yLength * zLength * primitiveCount;
+            float parentNodeCostY = xLength * zLength * primitiveCount;
+            float parentNodeCostZ = xLength * yLength * primitiveCount;
+            float currentOptimal = float.PositiveInfinity;
+            
+            foreach (Primitive primitive in primitives)
             {
+                Vector3 primitiveCenter = primitive.Center();
+
                 //Split along x_axis
                 newAABBs[0].min = min;
-                newAABBs[0].max = new Vector3(max.X - (xLength / 2f), max.Y, max.Z);
-                newAABBs[1].min = new Vector3(min.X + (xLength / 2f), min.Y, min.Z);
+                newAABBs[0].max = new Vector3(primitiveCenter.X, max.Y, max.Z);
+                newAABBs[1].min = new Vector3(primitiveCenter.X, min.Y, min.Z);
                 newAABBs[1].max = max;
-            }
 
-            else if (yLength > zLength)
-            {
+                uint primitivesLeft = newAABBs[0].Contains(primitives);
+                uint primitivesRight = newAABBs[1].Contains(primitives);
+
+
+                float leftCostX = (min.Y + primitiveCenter.Y) * (min.Z + primitiveCenter.Z) * primitivesRight;
+                float rightCostX = (max.Y - primitiveCenter.Y) * (max.Z - primitiveCenter.Z) * primitivesRight;
+
+                if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
+                {
+                    currentOptimal = leftCostX + rightCostX;
+                    optimalAABBs = newAABBs;
+                }
+
                 //Split along y_axis
                 newAABBs[0].min = min;
-                newAABBs[0].max = new Vector3(max.X, max.Y - (yLength / 2f), max.Z);
-                newAABBs[1].min = new Vector3(min.X, min.Y + (yLength / 2f), min.Z);
+                newAABBs[0].max = new Vector3(max.X, primitiveCenter.Y, max.Z);
+                newAABBs[1].min = new Vector3(min.X, primitiveCenter.Y, min.Z);
                 newAABBs[1].max = max;
-            }
 
-            else
-            {
+                float leftCostY = (min.X + primitiveCenter.X) * (min.Z + primitiveCenter.Z) * primitivesRight;
+                float rightCostY = (max.X - primitiveCenter.X) * (max.Z - primitiveCenter.Z) * primitivesRight;
+
+                if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
+                {
+                    currentOptimal = leftCostX + rightCostX;
+                    optimalAABBs = newAABBs;
+                }
+
                 //Split along z_axis
                 newAABBs[0].min = min;
-                newAABBs[0].max = new Vector3(max.X, max.Y, max.Z - (zLength / 2f));
-                newAABBs[1].min = new Vector3(min.X, min.Y, min.Z + (zLength / 2f));
+                newAABBs[0].max = new Vector3(max.X, max.Y, primitiveCenter.Z);
+                newAABBs[1].min = new Vector3(min.X, min.Y, primitiveCenter.Z);
                 newAABBs[1].max = max;
+
+                float rightCostZ = (max.X - primitiveCenter.X) * (max.Y - primitiveCenter.Y) * primitivesRight;
+                float leftCostZ = (min.X + primitiveCenter.X) * (min.Y + primitiveCenter.Y) * primitivesRight;
+
+                if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
+                {
+                    currentOptimal = leftCostX + rightCostX;
+                    optimalAABBs = newAABBs;
+                }
             }
-            return newAABBs;
+            return optimalAABBs;
         }
 
         public bool Contains(Vector3 p)
@@ -104,6 +139,19 @@ namespace Lighthouse3.BVH
             return 
                 min.X <= p.X && min.Y <= p.Y && min.Z <= p.Z &&
                 max.X >= p.X && max.Y >= p.Y && max.Z >= p.Z;
+        }
+
+        public uint Contains(Primitive[] primitives)
+        {
+            uint count = 0;
+            foreach (Primitive primitive in primitives)
+            {
+                if(Contains(primitive.Center()))
+                {
+                    count++;
+                }
+            }
+            return count;
         }
 
         public bool Intersect(Ray ray)
