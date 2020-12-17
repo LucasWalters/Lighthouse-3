@@ -36,6 +36,7 @@ namespace Lighthouse3 {
             Calc.Init();
 			scene = StandardScenes.TeapotScene();
             camera = scene.mainCamera;
+            //camera.pixels = screen.pixels;
         }
 
 		public void Tick(FrameEventArgs e)

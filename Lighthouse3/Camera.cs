@@ -50,10 +50,11 @@ namespace Lighthouse3
         public Vector3 screenCenter;
 
         public Vector3[] pixelColors;
+        public Ray[] rays;
         public int[] pixels;
         public bool pixelsChanged = false;
+        public int numberOfThreads;
         TracingThread[] threads;
-        int numberOfThreads;
         int frames = 0;
         int threadsFinished = 0;
         bool rendering = false;
@@ -64,6 +65,7 @@ namespace Lighthouse3
         bool stratification;
         int strata = 0;
         float invStrata;
+        float invRaysPerPixel;
 
         float widthPerPixel;
         float heightPerPixel;
@@ -131,6 +133,9 @@ namespace Lighthouse3
                 invStrata = 0f;
             }
 
+            invRaysPerPixel = 1f / raysPerPixel;
+            rays = new Ray[screenWidth * screenHeight * raysPerPixel];
+
             widthPerPixel = 1f / (screenWidth - 1);
             heightPerPixel = 1f / (screenHeight - 1);
 
@@ -144,6 +149,14 @@ namespace Lighthouse3
 
             // Update Diagonal Length for FOV
             diagonalLength = (bottomLeft - topRight).Length;
+
+            for (int x = 0; x < screenWidth; x++)
+            {
+                for (int y = 0; y < screenHeight; y++)
+                {
+                    UpdatePixelRays(x, y);
+                }
+            }
             resetFrame = true;
         }
 
@@ -187,38 +200,27 @@ namespace Lighthouse3
             return GetPointPos(widthPerPixel * (x + u), heightPerPixel * (y + v));
         }
 
-        public Ray GetPixelRay(int x, int y, int index = 0)
+        public void UpdatePixelRays(int x, int y)
         {
-            Vector3 point = GetPixelPos(x, y, index);
-            Vector3 rayDir = (point - position).Normalized();
-            return new Ray(position, rayDir);
+            if (raysPerPixel > 1)
+                for (int i = 0; i < raysPerPixel; i++)
+                    UpdateRay(x * raysPerPixel + y * screenWidth * raysPerPixel + i, GetPixelPos(x, y));
+            else
+                UpdateRay(x + y * screenWidth, GetPixelPos(x, y));
+        }
+        public void UpdateRandomizedPixelRays(int x, int y)
+        {
+            if (raysPerPixel > 1)
+                for (int i = 0; i < raysPerPixel; i++)
+                    UpdateRay(x * raysPerPixel + y * screenWidth * raysPerPixel + i, GetRandomizedPixelPos(x, y));
+            else
+                UpdateRay(x + y * screenWidth, GetRandomizedPixelPos(x, y));
         }
 
-        public Ray[] GetPixelRays(int x, int y, int rayCount)
+        private void UpdateRay(int index, Vector3 origin)
         {
-            Ray[] rays = new Ray[rayCount];
-            for (int i = 0; i < rayCount; i++)
-            {
-                rays[i] = GetPixelRay(x, y, i);
-            }
-            return rays;
-        }
-
-        public Ray GetRandomizedPixelRay(int x, int y, int index = 0)
-        {
-            Vector3 point = GetRandomizedPixelPos(x, y, index);
-            Vector3 rayDir = (point - position).Normalized();
-            return new Ray(position, rayDir);
-        }
-
-        public Ray[] GetRandomizedPixelRays(int x, int y, int rayCount)
-        {
-            Ray[] rays = new Ray[rayCount];
-            for (int i = 0; i < rayCount; i++)
-            {
-                rays[i] = GetRandomizedPixelRay(x, y, i);
-            }
-            return rays;
+            rays[index].origin = origin;
+            rays[index].SetDirection((origin - position).Normalized());
         }
 
         public float GetVignetteFactor(int x, int y)
@@ -234,28 +236,12 @@ namespace Lighthouse3
 
         public void Frame(Scene scene)
         {
-            float raysDivider = 1f / raysPerPixel;
             float framesDivider = 1f / ++frames;
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    float vignette = GetVignetteFactor(x, y);
-                    if (raysPerPixel > 1)
-                    {
-                        Ray[] pixelRays = antiAliasing ? GetRandomizedPixelRays(x, y, raysPerPixel) : GetPixelRays(x, y, raysPerPixel);
-                        Vector3 combinedColour = Vector3.Zero;
-                        for (int i = 0; i < raysPerPixel; i++)
-                        {
-                            combinedColour += TraceRay(pixelRays[i], scene) * vignette;
-                        }
-                        pixelColors[x + y * screenWidth] += combinedColour * raysDivider;
-                    }
-                    else
-                    {
-                        Ray ray = antiAliasing ? GetRandomizedPixelRay(x, y) : GetPixelRay(x, y);
-                        pixelColors[x + y * screenWidth] += TraceRay(ray, scene) * vignette;
-                    }
+                    CalculateRay(x, y, scene);
                     pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
                 }
             }
@@ -287,17 +273,13 @@ namespace Lighthouse3
             int perThread = (int)Math.Floor((float)screenWidth / (float)numberOfThreads);
             for (int t = 0; t < numberOfThreads; t++)
             {
-                int start = t * perThread;
-                int end = (t < numberOfThreads - 1) ? start + perThread : screenWidth;
-                int current = t;
-                threads[t] = new TracingThread(this, scene, start, end, (Vector3[] output) =>
+                threads[t] = new TracingThread(t, this, scene, (threadIndex) =>
                 {
-                    for (int x = start; x < end; x++)
+                    for (int x = threadIndex; x < screenWidth; x += numberOfThreads)
                     {
                         for (int y = 0; y < screenHeight; y++)
                         {
                             int index = x + y * screenWidth;
-                            pixelColors[index] += output[(x - start) + y * (end - start)];
                             pixels[index] = ColorToPixel(pixelColors[index] * framesDivider);
                         }
                     }
@@ -314,27 +296,35 @@ namespace Lighthouse3
             }
         }
 
+        public void CalculateRay(int x, int y, Scene scene, bool debug = false)
+        {
+            int index = x + y * screenWidth;
+            float vignette = GetVignetteFactor(x, y);
+            if (antiAliasing)
+            {
+                UpdateRandomizedPixelRays(x, y);
+            }
+            if (raysPerPixel > 1)
+            {
+                Vector3 combinedColour = Vector3.Zero;
+                for (int i = 0; i < raysPerPixel; i++)
+                {
+                    combinedColour += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug) * vignette;
+                }
+                pixelColors[index] += combinedColour * invRaysPerPixel;
+            }
+            else
+            {
+                pixelColors[index] += TraceRay(rays[index], scene, debug) * vignette;
+            }
+        }
+
         public void DebugRay(Scene scene, int x, int y)
         {
             if (x <= 0 || y <= 0)
                 return;
-            Vector3 color = pixelColors[x + y * screenWidth];
-            if (raysPerPixel > 1)
-            {
-                Ray[] pixelRays = GetRandomizedPixelRays(x, y, raysPerPixel);
-                Vector3 combinedColour = Vector3.Zero;
-                for (int i = 0; i < raysPerPixel; i++)
-                {
-                    combinedColour += TraceRay(pixelRays[i], scene, true);
-                }
-                color += combinedColour / raysPerPixel;
-            }
-            else
-            {
-                color += TraceRay(GetPixelRay(x, y), scene, true);
-            }
-            color /= frames + 1;
-            pixels[x + y * screenWidth] = ColorToPixel(color);
+            CalculateRay(x, y, scene, true);
+            pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] / (frames + 1f));
             pixelsChanged = true;
         }
 
@@ -414,24 +404,22 @@ namespace Lighthouse3
 
     }
 
-    public delegate void TacingThreadCallback(Vector3[] pixelColors);
+    public delegate void TacingThreadCallback(int threadIndex);
 
     public class TracingThread
     {
+        private readonly int threadIndex;
         private readonly Camera camera;
         private readonly Scene scene;
-        private readonly int start;
-        private readonly int end;
         public bool abort = false;
 
         private TacingThreadCallback callback;
 
-        public TracingThread(Camera camera, Scene scene, int start, int end, TacingThreadCallback callback)
+        public TracingThread(int threadIndex, Camera camera, Scene scene, TacingThreadCallback callback)
         {
+            this.threadIndex = threadIndex;
             this.camera = camera;
             this.scene = scene;
-            this.start = start;
-            this.end = end;
             this.callback = callback;
         }
 
@@ -439,36 +427,19 @@ namespace Lighthouse3
         {
             //Initializes random seed in calc
             Calc.Init();
-            Vector3[] pixelColors = new Vector3[(end - start) * camera.screenHeight];
-            float raysDivider = 1f / camera.raysPerPixel;
-            for (int x = start; x < end; x++)
+            for (int x = threadIndex; x < camera.screenWidth; x += camera.numberOfThreads)
             {
                 for (int y = 0; y < camera.screenHeight; y++)
                 {
                     if (abort)
                         return;
-                    float vignette = camera.GetVignetteFactor(x, y);
-                    if (camera.raysPerPixel > 1)
-                    {
-                        Ray[] pixelRays = camera.antiAliasing ? camera.GetRandomizedPixelRays(x, y, camera.raysPerPixel) : camera.GetPixelRays(x, y, camera.raysPerPixel);
-                        Vector3 combinedColour = Vector3.Zero;
-                        for (int i = 0; i < camera.raysPerPixel; i++)
-                        {
-                            combinedColour += camera.TraceRay(pixelRays[i], scene) * vignette;
-                        }
-                        pixelColors[(x - start) + y * (end - start)] += combinedColour * raysDivider;
-                    }
-                    else
-                    {
-                        Ray ray = camera.antiAliasing ? camera.GetRandomizedPixelRay(x, y) : camera.GetPixelRay(x, y);
-                        pixelColors[(x - start) + y * (end - start)] += camera.TraceRay(ray, scene) * vignette;
-                    }
+                    camera.CalculateRay(x, y, scene);
                 }
             }
 
 
             if (!abort)
-                callback?.Invoke(pixelColors);
+                callback?.Invoke(threadIndex);
         }
     }
 }

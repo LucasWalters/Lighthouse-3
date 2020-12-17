@@ -14,6 +14,7 @@ namespace Lighthouse3
     {
         public Vector3 origin;
         public Vector3 direction;
+        public float distance;
         public Vector3 invDir;
 
         // Direction should be normalized
@@ -22,6 +23,16 @@ namespace Lighthouse3
             this.origin = startPosition;
             if (direction.LengthSquared != 0)
                 direction = direction.Normalized();
+            this.direction = direction;
+            invDir.X = 1f / direction.X;
+            invDir.Y = 1f / direction.Y;
+            invDir.Z = 1f / direction.Z;
+            distance = float.MaxValue;
+        }
+
+        public void SetDirection(Vector3 direction)
+        {
+            distance = float.MaxValue;
             this.direction = direction;
             invDir.X = 1f / direction.X;
             invDir.Y = 1f / direction.Y;
@@ -150,7 +161,7 @@ namespace Lighthouse3
 
 
                // Console.WriteLine("Old: " + reflection.direction);
-                reflection.direction = randomDirection;
+                reflection.SetDirection(randomDirection);
                 //Console.WriteLine("New: " + reflection.direction);
             }
             return reflection;
