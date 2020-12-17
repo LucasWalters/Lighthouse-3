@@ -77,10 +77,10 @@ namespace Lighthouse3.BVH
             float parentNodeCostY = xLength * zLength * primitiveCount;
             float parentNodeCostZ = xLength * yLength * primitiveCount;
             float currentOptimal = float.PositiveInfinity;
-            
-            foreach (Primitive primitive in primitives)
+
+            for (int i = 0; i < primitives.Length; i++)
             {
-                Vector3 primitiveCenter = primitive.Center();
+                Vector3 primitiveCenter = primitives[i].Center();
 
                 //Split along x_axis
                 newAABBs[0].min = min;
@@ -92,7 +92,7 @@ namespace Lighthouse3.BVH
                 uint primitivesRight = newAABBs[1].Contains(primitives);
 
 
-                float leftCostX = (min.Y + primitiveCenter.Y) * (min.Z + primitiveCenter.Z) * primitivesRight;
+                float leftCostX = (min.Y + primitiveCenter.Y) * (min.Z + primitiveCenter.Z) * primitivesLeft;
                 float rightCostX = (max.Y - primitiveCenter.Y) * (max.Z - primitiveCenter.Z) * primitivesRight;
 
                 if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
@@ -107,7 +107,11 @@ namespace Lighthouse3.BVH
                 newAABBs[1].min = new Vector3(min.X, primitiveCenter.Y, min.Z);
                 newAABBs[1].max = max;
 
-                float leftCostY = (min.X + primitiveCenter.X) * (min.Z + primitiveCenter.Z) * primitivesRight;
+
+                primitivesLeft = newAABBs[0].Contains(primitives);
+                primitivesRight = newAABBs[1].Contains(primitives);
+
+                float leftCostY = (min.X + primitiveCenter.X) * (min.Z + primitiveCenter.Z) * primitivesLeft;
                 float rightCostY = (max.X - primitiveCenter.X) * (max.Z - primitiveCenter.Z) * primitivesRight;
 
                 if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
@@ -122,7 +126,11 @@ namespace Lighthouse3.BVH
                 newAABBs[1].min = new Vector3(min.X, min.Y, primitiveCenter.Z);
                 newAABBs[1].max = max;
 
-                float rightCostZ = (max.X - primitiveCenter.X) * (max.Y - primitiveCenter.Y) * primitivesRight;
+
+                primitivesLeft = newAABBs[0].Contains(primitives);
+                primitivesRight = newAABBs[1].Contains(primitives);
+
+                float rightCostZ = (max.X - primitiveCenter.X) * (max.Y - primitiveCenter.Y) * primitivesLeft;
                 float leftCostZ = (min.X + primitiveCenter.X) * (min.Y + primitiveCenter.Y) * primitivesRight;
 
                 if (leftCostX + rightCostX < parentNodeCostX && leftCostX + rightCostX < currentOptimal)
@@ -144,9 +152,9 @@ namespace Lighthouse3.BVH
         public uint Contains(Primitive[] primitives)
         {
             uint count = 0;
-            foreach (Primitive primitive in primitives)
+            for (int i = 0; i < primitives.Length; i++)
             {
-                if(Contains(primitive.Center()))
+                if(Contains(primitives[i].Center()))
                 {
                     count++;
                 }
