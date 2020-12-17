@@ -28,7 +28,7 @@ namespace Lighthouse3.Primitives
             area = side1.Length * side2.Length;
             bounds.min = Min();
             bounds.max = Max();
-            bounds.ResetCenter();
+            bounds = bounds.ResetCenter();
         }
 
         public override bool Intersect(Ray ray, out float t)

@@ -18,9 +18,9 @@ namespace Lighthouse3.Scenes
     {
         public Camera mainCamera;
         public Vector3 backgroundColor;
-        public Light[] lights;
-        public Primitive[] primitives;
-        public Plane[] planes;
+        public Light[] lights = new Light[0];
+        public Primitive[] primitives = new Primitive[0];
+        public Plane[] planes = new Plane[0];
         public int[] indices;
         //public static Scene CURRENT_SCENE = StandardScenes.OBJScene();
 
@@ -44,7 +44,7 @@ namespace Lighthouse3.Scenes
             }
 
             int index = 1; // Index to first child node
-
+            nodes[0].centroidBounds = nodes[0].CentroidAABB(primBounds, indices);
             nodes[0].Subdivide(primBounds, indices, nodes, ref index);
 
             int nrOfLeafs = 0;

@@ -7,12 +7,13 @@ namespace Lighthouse3.BVH
     public struct BVHNode
     {
         public AABB bounds;
+        public AABB centroidBounds;
         public int firstOrLeft;
         public int count;
 
         public static readonly int numberOfSplitPlanes = 8;
         public static readonly float invNumberOfSplitPlanes = 1f / (numberOfSplitPlanes + 1);
-        public static readonly int maxPrimsPerNode = 5;
+        //public static readonly int maxPrimsPerNode = 5;
 
         private void Swap (Primitive[] primitives, int i, int j)
         {
@@ -21,12 +22,39 @@ namespace Lighthouse3.BVH
             primitives[j] = temp;
         }
 
+        public AABB CentroidAABB(AABB[] primBounds, int[] indices)
+        {
+            AABB r = new AABB();
+            r.min = Vector3.Zero;
+            r.max = Vector3.Zero;
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 center = primBounds[indices[firstOrLeft + i]].center;
+                if (i == 0)
+                {
+                    r.min = center;
+                    r.max = center;
+                }
+                else
+                {
+                    for (int xyz = 0; xyz < 3; xyz++)
+                    {
+                        if (center[xyz] < r.min[xyz])
+                            r.min[xyz] = center[xyz];
+                        if (center[xyz] > r.max[xyz])
+                            r.max[xyz] = center[xyz];
+                    }
+                }
+            }
+            return r.ResetCenter();
+        }
+
         public void Subdivide(AABB[] primBounds, int[] indices, BVHNode[] nodes, ref int nodeIndex)
         {
             //if (count <= maxPrimsPerNode) return;
 
             int axis;
-            float axisSize = bounds.LongestAxis(out axis);
+            float axisSize = centroidBounds.LongestAxis(out axis);
             if (axisSize < numberOfSplitPlanes * Calc.Epsilon)
                 return;
             float currentCost = bounds.SurfaceArea() * count;
@@ -38,12 +66,16 @@ namespace Lighthouse3.BVH
             bool splitting = false;
             int[] totalSorted = new int[count];
             for (int i = 0; i < count; i++)
+            {
                 totalSorted[i] = indices[firstOrLeft + i];
+            }
+
+
 
 
             for (int splitIndex = 0; splitIndex < numberOfSplitPlanes; splitIndex++)
             {
-                float splitPoint = bounds.min[axis] + axisSize * invNumberOfSplitPlanes * (splitIndex + 1);
+                float splitPoint = centroidBounds.min[axis] + axisSize * invNumberOfSplitPlanes * (splitIndex + 1);
 
                 AABB leftBounds = new AABB();
                 AABB rightBounds = new AABB();
@@ -117,9 +149,11 @@ namespace Lighthouse3.BVH
             nodes[nodeIndex].firstOrLeft = firstOrLeft;
             nodes[nodeIndex].count = bestCountLeft;
             nodes[nodeIndex].bounds = bestLeftBounds;
+            nodes[nodeIndex].centroidBounds = nodes[nodeIndex].CentroidAABB(primBounds, indices);
             nodes[nodeIndex + 1].firstOrLeft = firstOrLeft + bestCountLeft;
             nodes[nodeIndex + 1].count = count - bestCountLeft;
             nodes[nodeIndex + 1].bounds = bestRightBounds;
+            nodes[nodeIndex + 1].centroidBounds = nodes[nodeIndex + 1].CentroidAABB(primBounds, indices);
 
             //Console.WriteLine("Allocated " + countLeft + " to left");
             //Console.WriteLine("Allocated " + (count - countLeft) + " to right");

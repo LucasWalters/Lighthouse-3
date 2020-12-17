@@ -48,9 +48,10 @@ namespace Lighthouse3.BVH
             center = min + ((max - min) / 2f);
         }
 
-        public void ResetCenter()
+        public AABB ResetCenter()
         {
             center = min + ((max - min) / 2f);
+            return this;
         }
 
         public AABB Extend(AABB other)

@@ -17,7 +17,7 @@ namespace Lighthouse3.Primitives
             this.p2 = p2;
             bounds.min = Min();
             bounds.max = Max();
-            bounds.ResetCenter();
+            bounds = bounds.ResetCenter();
         }
 
         // Returns null if no intersection
