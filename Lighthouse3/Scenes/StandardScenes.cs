@@ -45,7 +45,7 @@ namespace Lighthouse3.Scenes
         public static Scene TeapotScene()
         {
             Scene scene = new Scene();
-            RayTracers.RayTracer rayTracer = RayTracers.RayTracer.PathTracer;
+            RayTracers.RayTracer rayTracer = RayTracers.RayTracer.Whitted;
 
             scene.mainCamera =
                 new Camera(
@@ -65,7 +65,7 @@ namespace Lighthouse3.Scenes
             scene.backgroundColor = Color.Black;
 
             if (rayTracer == RayTracers.RayTracer.Whitted)
-                scene.lights = new Light[] { new PointLight(new Vector3(0, 5, 0), Color.White, 1f) };
+                scene.lights = new Light[] { new PointLight(new Vector3(0, 3, -3), Color.White, 50) };
             else
                 scene.lights = new Light[] { new AreaLight(new Vector3(10, 6, 10), new Vector3(-10, 6, 10), new Vector3(10, 6, -10), Color.White, 0.5f) };
 

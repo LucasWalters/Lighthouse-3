@@ -10,10 +10,11 @@ using System.Collections.Generic;
 
 namespace Lighthouse3
 {
-    public class Ray
+    public struct Ray
     {
         public Vector3 origin;
         public Vector3 direction;
+        public Vector3 invDir;
 
         // Direction should be normalized
         public Ray(Vector3 startPosition, Vector3 direction)
@@ -22,6 +23,9 @@ namespace Lighthouse3
             if (direction.LengthSquared != 0)
                 direction = direction.Normalized();
             this.direction = direction;
+            invDir.X = 1f / direction.X;
+            invDir.Y = 1f / direction.Y;
+            invDir.Z = 1f / direction.Z;
         }
 
         public Vector3 GetPoint(float distance)
@@ -61,6 +65,8 @@ namespace Lighthouse3
 
         private Intersection IntersectNode(Scene scene, BVHNode node, Intersection intersection, bool debug)
         {
+            if (debug)
+                Console.WriteLine(node.bounds.Intersect(this));
             if (node.bounds.Intersect(this))
             {
                 if (node.count < 0)
@@ -190,7 +196,7 @@ namespace Lighthouse3
                 if (int_sinT2 > 1f)
                 {
                     reflectionChance = 1f;
-                    return null;
+                    return this;
                 }
                 cosX = (float)Math.Sqrt(1.0f - int_sinT2);
             } 

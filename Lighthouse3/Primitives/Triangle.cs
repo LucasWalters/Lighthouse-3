@@ -15,6 +15,8 @@ namespace Lighthouse3.Primitives
             this.p0 = p0;
             this.p1 = p1;
             this.p2 = p2;
+            bounds.min = Min();
+            bounds.max = Max();
         }
 
         // Returns null if no intersection

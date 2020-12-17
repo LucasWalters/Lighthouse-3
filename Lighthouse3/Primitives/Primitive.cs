@@ -2,6 +2,7 @@
 using OpenTK.Graphics;
 using System.Drawing;
 using OpenTK;
+using Lighthouse3.BVH;
 
 namespace Lighthouse3.Primitives
 {
@@ -11,6 +12,7 @@ namespace Lighthouse3.Primitives
     public abstract class Primitive
     {
         public Material material;
+        public AABB bounds;
 
         public Primitive(Material material)
         {

@@ -26,6 +26,8 @@ namespace Lighthouse3.Primitives
             side2 = bottomLeft - topLeft;
             normal = Vector3.Cross(side1, side2);
             area = side1.Length * side2.Length;
+            bounds.min = Min();
+            bounds.max = Max();
         }
 
         public override bool Intersect(Ray ray, out float t)

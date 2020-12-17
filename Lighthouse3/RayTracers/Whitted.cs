@@ -84,10 +84,9 @@ namespace Lighthouse3.RayTracers
                 if (debug)
                     Console.WriteLine(reflectionChance);
 
-                if (refraction == null)
+                if (reflectionChance >= 1f)
                 {
                     //Total internal reflection
-                    reflectionChance = 1;
                     refractionChance = 0;
                 } 
                 else if (backface || reflectionChance < Calc.Epsilon)

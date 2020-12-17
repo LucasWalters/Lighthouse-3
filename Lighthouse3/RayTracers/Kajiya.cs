@@ -90,7 +90,7 @@ namespace Lighthouse3.RayTracers
 
                 bool refract;
 
-                if (refraction == null)
+                if (reflectionChance >= 1f)
                     //Total internal reflection
                     refract = false;
                 else if (backface || reflectionChance < Calc.Epsilon)

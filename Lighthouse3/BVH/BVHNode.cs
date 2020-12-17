@@ -11,7 +11,7 @@ namespace Lighthouse3.BVH
         public int count;
 
 
-        public static readonly int MaxPrimsPerNode = 3;
+        public static readonly int MaxPrimsPerNode = 5;
 
         private void Swap (Primitive[] primitives, int i, int j)
         {
@@ -24,10 +24,8 @@ namespace Lighthouse3.BVH
         {
             if (count <= MaxPrimsPerNode) return;
 
-            // Split AABB and assign left and right
+            //TODO split place instead of AABB
             AABB[] newAABBs = bounds.SplitAABB();
-            nodes[nodeIndex].bounds = newAABBs[0];
-            nodes[nodeIndex + 1].bounds = newAABBs[1];
             //Console.WriteLine("Bounds: " + bounds.min + ", " + bounds.max);
             //Console.WriteLine("Left: " + newAABBs[0].min + ", " + newAABBs[0].max);
             //Console.WriteLine("Right: " + newAABBs[1].min + ", " + newAABBs[1].max);
@@ -36,27 +34,37 @@ namespace Lighthouse3.BVH
             int[] sorted = new int[count];
             int countLeft = 0;
             int countRight = count-1;
+            AABB leftBounds = newAABBs[0];
+            AABB rightBounds = newAABBs[1];
             for (int i = 0; i < count; i++)
             {
                 int index = indices[firstOrLeft + i];
-                bool left = newAABBs[0].Contains(primitives[index].Center());
-                //bool right = newAABBs[1].Contains(center);
+                Vector3 center = primitives[index].Center();
+                bool left = newAABBs[0].Contains(center);
+                bool right = newAABBs[1].Contains(center);
                 if (left)
+                {
                     sorted[countLeft++] = index;
-                else
+                    leftBounds = leftBounds.Extend(primitives[index].bounds);
+                }
+                else if (right)
+                {
                     sorted[countRight--] = index;
-                //else
-                //{
-                //    Console.WriteLine("NOT IN LEFT OR RIGHT!");
-                //    Console.WriteLine("Center " + index + ": " + center);
-                //}
+                    rightBounds = rightBounds.Extend(primitives[index].bounds);
+
+                }
+                else
+                {
+                    Console.WriteLine("NOT IN LEFT OR RIGHT!");
+                    Console.WriteLine("Center " + index + ": " + center);
+                }
             }
 
             // If one of the children is empty, change bounds and resplit
             if (countLeft == count || countLeft == 0)
             {
-                bounds = newAABBs[countLeft == 0 ? 1 : 0];
-                Subdivide(primitives, indices, nodes, ref nodeIndex);
+                //bounds = countLeft == 0 ? rightBounds : leftBounds;
+                //Subdivide(primitives, indices, nodes, ref nodeIndex);
                 return;
             }
 
@@ -68,8 +76,10 @@ namespace Lighthouse3.BVH
             // Give first index and count to child nodes
             nodes[nodeIndex].firstOrLeft = firstOrLeft;
             nodes[nodeIndex].count = countLeft;
+            nodes[nodeIndex].bounds = leftBounds;
             nodes[nodeIndex + 1].firstOrLeft = firstOrLeft + countLeft;
             nodes[nodeIndex + 1].count = count - countLeft;
+            nodes[nodeIndex + 1].bounds = rightBounds;
 
             //Console.WriteLine("Allocated " + countLeft + " to left");
             //Console.WriteLine("Allocated " + (count - countLeft) + " to right");
