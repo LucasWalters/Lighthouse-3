@@ -30,16 +30,21 @@ namespace Lighthouse3.Scenes
         {
             int N = primitives.Length;
             indices = new int[N];
-            for (int i = 0; i < N; i++)
-                indices[i] = i;
-
+            AABB[] primBounds = new AABB[N];
             nodes = new BVHNode[N * 2 - 1];
-
             nodes[0].firstOrLeft = 0;
             nodes[0].count = N;
-            nodes[0].bounds = new AABB(primitives);
+            //nodes[0].bounds = new AABB(primitives);
+            for (int i = 0; i < N; i++)
+            {
+                indices[i] = i;
+                primBounds[i] = primitives[i].bounds;
+                nodes[0].bounds = nodes[0].bounds.Extend(primitives[i].bounds);
+            }
+
             int index = 1; // Index to first child node
-            nodes[0].Subdivide(primitives, indices, nodes, ref index);
+
+            nodes[0].Subdivide(primBounds, indices, nodes, ref index);
             hasBVH = true;
 
             Console.WriteLine("BVH Done");

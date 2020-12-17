@@ -17,6 +17,7 @@ namespace Lighthouse3.Primitives
             radiusSquared = radius * radius;
             bounds.min = Min();
             bounds.max = Max();
+            bounds.ResetCenter();
         }
 
         // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
