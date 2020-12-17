@@ -98,9 +98,9 @@ namespace Lighthouse3.BVH
         {
             Vector3 diff = max - min;
             return
-                diff.X * diff.Y * 2 +
-                diff.X * diff.Z * 2 +
-                diff.Z * diff.Y * 2;
+                diff.X * diff.Y +
+                diff.X * diff.Z +
+                diff.Z * diff.Y;
         }
 
         public AABB[] SplitAABB()

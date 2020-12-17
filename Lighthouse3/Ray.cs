@@ -61,6 +61,15 @@ namespace Lighthouse3
                 }
             }
 
+            foreach (Plane plane in scene.planes)
+            {
+                bool intersected = plane.Intersect(this, out t);
+                if (intersected && t < intersection.distance)
+                {
+                    intersection = new Intersection(t, this, plane);
+                }
+            }
+
             intersection = scene.hasBVH ? 
                 NearestIntersectionBVH(scene, intersection, debug) : 
                 NearestIntersection(scene.primitives, intersection);

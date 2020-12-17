@@ -34,7 +34,7 @@ namespace Lighthouse3 {
             //screen.Clear(0xcc33ff);
             //small = new Sprite("../../assets/small.png");
             Calc.Init();
-			scene = StandardScenes.TeapotScene();
+			scene = StandardScenes.KajiyaScene();
             camera = scene.mainCamera;
             //camera.pixels = screen.pixels;
         }

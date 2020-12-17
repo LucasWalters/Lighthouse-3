@@ -20,6 +20,7 @@ namespace Lighthouse3.Scenes
         public Vector3 backgroundColor;
         public Light[] lights;
         public Primitive[] primitives;
+        public Plane[] planes;
         public int[] indices;
         //public static Scene CURRENT_SCENE = StandardScenes.OBJScene();
 
@@ -45,9 +46,27 @@ namespace Lighthouse3.Scenes
             int index = 1; // Index to first child node
 
             nodes[0].Subdivide(primBounds, indices, nodes, ref index);
+
+            int nrOfLeafs = 0;
+            int emptyLeafs = 0;
+            int nr = 0;
+            foreach(BVHNode node in nodes)
+            {
+                if (node.count > 0)
+                {
+                    nrOfLeafs++;
+                    nr += node.count;
+                }
+                else if (node.count == 0 && node.firstOrLeft != 0)
+                    emptyLeafs++;
+            }
             hasBVH = true;
 
+            Console.WriteLine("Prims: " + N);
             Console.WriteLine("BVH Done");
+            Console.WriteLine("Leafs: " + nrOfLeafs);
+            Console.WriteLine("Empty leafs: " + emptyLeafs);
+            Console.WriteLine(nr);
         }
     }
     

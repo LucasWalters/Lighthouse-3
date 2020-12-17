@@ -100,15 +100,16 @@ namespace Lighthouse3.Scenes
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
-
-            scene.primitives = new Primitive[]
+            scene.planes = new Plane[]
             {
                 new Plane(new Vector3(-20, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
                 new Plane(new Vector3(0, -2, 0), new Vector3(0, 1, 0), Material.Gray),
                 new Plane(new Vector3(20, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
                 new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.DarkOliveGreen),
                 new Plane(new Vector3(0, 0, 10), new Vector3(0, 0, -1), Material.YellowGreen),
-
+            };
+            scene.primitives = new Primitive[]
+            {
                 new Sphere(new Vector3(-4, 0, 6), 2f, Material.Glass),
                 new Sphere(new Vector3(4, 0, 6), 2f, Material.Blue),
                 new Sphere(new Vector3(-8, 0, 4), 2f, Material.Mirror),
@@ -143,16 +144,17 @@ namespace Lighthouse3.Scenes
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.isCheckerboard = true;
-
-            scene.primitives = new Primitive[]
+            scene.planes = new Plane[]
             {
                 new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
                 new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), checkerboard),
                 new Plane(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
                 new Plane(new Vector3(0, -1f, 0), new Vector3(0, 1, 0), checkerboard),
                 new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.YellowGreen),
+            };
 
-
+            scene.primitives = new Primitive[]
+            {
                 new Sphere(new Vector3(2, 0, 3), 1f, Material.Yellow),
                 new Sphere(new Vector3(3, 0, 1), 1f, Material.Mirror),
                 new Sphere(new Vector3(-1, 0, 2), 1f, Material.Glass),
