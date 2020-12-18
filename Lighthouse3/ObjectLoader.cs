@@ -34,16 +34,16 @@ namespace Lighthouse3
                 int amount = loadResult.Groups[i].Faces.Count;
                 for (int j = 0; j < amount; j++)
                 {
-                    List<Vector3> points = new List<Vector3>();
-
                     //Iterate over each face
                     Face face = loadResult.Groups[i].Faces[j];
-                    for (int k = 0; k < face.Count-1; k++)
+                    for (int k = 1; k < face.Count-1; k++)
                     {
-                        Vertex point = loadResult.Vertices[face[k].VertexIndex - 1];
-                        triangles.Add(new Triangle(ObjectLoader.VertexToVector3(loadResult.Vertices[face[0].VertexIndex - 1]), 
-                            ObjectLoader.VertexToVector3(loadResult.Vertices[face[k].VertexIndex - 1]), 
-                            ObjectLoader.VertexToVector3(loadResult.Vertices[face[k+1].VertexIndex - 1]), MtlToMaterial(loadResult.Groups[i].Material)));
+                        triangles.Add(new Triangle(
+                            VertexToVector3(loadResult.Vertices[face[0].VertexIndex - 1]), 
+                            VertexToVector3(loadResult.Vertices[face[k].VertexIndex - 1]), 
+                            VertexToVector3(loadResult.Vertices[face[k+1].VertexIndex - 1]), 
+                            MtlToMaterial(loadResult.Groups[i].Material))
+                        );
                     } 
                 }
             }
