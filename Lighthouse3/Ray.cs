@@ -47,6 +47,11 @@ namespace Lighthouse3
         public Intersection NearestIntersection(Scene scene, bool debug = false)
         {
             Intersection intersection = new Intersection(int.MaxValue, this, null);
+
+            intersection = scene.hasBVH ? 
+                NearestIntersectionBVH(scene, intersection, debug) : 
+                NearestIntersection(scene.primitives, intersection);
+
             float t;
             foreach (Light light in scene.lights)
             {
@@ -70,23 +75,18 @@ namespace Lighthouse3
                 }
             }
 
-            intersection = scene.hasBVH ? 
-                NearestIntersectionBVH(scene, intersection, debug) : 
-                NearestIntersection(scene.primitives, intersection);
-
             return intersection.hit == null ? null : intersection;
         }
 
         private Intersection NearestIntersectionBVH(Scene scene, Intersection intersection, bool debug)
         {
-
             return IntersectNode(scene, scene.nodes[0], intersection, debug);
         }
 
         private Intersection IntersectNode(Scene scene, BVHNode node, Intersection intersection, bool debug)
         {
-            if (debug)
-                Console.WriteLine(node.bounds.Intersect(this));
+            //if (debug)
+                //Console.WriteLine(node.bounds.Intersect(this));
             if (node.bounds.Intersect(this))
             {
                 if (node.count < 0)
@@ -109,18 +109,22 @@ namespace Lighthouse3
         private Intersection NearestIntersection(Scene scene, int first, int count, Intersection intersection, bool debug)
         {
             float t;
-            //if (debug)
-            //{
-            //    Console.WriteLine("First: " + first);
-            //    Console.WriteLine("Count: " + count);
-            //    Console.WriteLine(intersection.distance);
-            //}
+            if (debug)
+            {
+                Console.WriteLine("First: " + first);
+                Console.WriteLine("Count: " + count);
+                Console.WriteLine(intersection.distance);
+            }
             for (int i = 0; i < count; i++)
             {
                 int index = scene.indices[first + i];
                 bool intersected = scene.primitives[index].Intersect(this, out t);
                 if (intersected && t < intersection.distance)
                 {
+                    if (debug)
+                    {
+                        Console.WriteLine("Intersected! At: " + first + i);
+                    }
                     intersection = new Intersection(t, this, scene.primitives[index]);
                 }
             }

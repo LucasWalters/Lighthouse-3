@@ -8,6 +8,7 @@ using OpenTK.Graphics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,55 +23,60 @@ namespace Lighthouse3.Scenes
         public Primitive[] primitives = new Primitive[0];
         public Plane[] planes = new Plane[0];
         public int[] indices;
-        //public static Scene CURRENT_SCENE = StandardScenes.OBJScene();
 
         public BVHNode[] nodes;
         public bool hasBVH = false;
         
-        public void CalculateBVH()
+        public void CalculateBVH(bool collapsed4Way, bool stats)
         {
             int N = primitives.Length;
+            Stopwatch sw = null;
+            if (stats)
+            {
+                Console.WriteLine("Starting BVH generation. Scene size: " + N + " primitives.");
+                sw = Stopwatch.StartNew();
+            }
             indices = new int[N];
             AABB[] primBounds = new AABB[N];
             nodes = new BVHNode[N * 2 - 1];
             nodes[0].firstOrLeft = 0;
             nodes[0].count = N;
-            //nodes[0].bounds = new AABB(primitives);
             for (int i = 0; i < N; i++)
             {
                 indices[i] = i;
                 primBounds[i] = primitives[i].bounds;
-                nodes[0].bounds = nodes[0].bounds.Extend(primitives[i].bounds);
+                nodes[0].bounds = nodes[0].bounds.Extend(primBounds[i]);
             }
-
             int index = 1; // Index to first child node
+            nodes[0].bounds = nodes[0].bounds.ResetCenter();
             nodes[0].centroidBounds = nodes[0].CentroidAABB(primBounds, indices);
+            nodes[0] = nodes[0].InitSplittingAxis();
             nodes[0].Subdivide(primBounds, indices, nodes, ref index);
 
             // Collapse into 4-way BVH
-            nodes[0].CollapseBVH(nodes, 0);
-
-            // DEBUG INFO
-            int nrOfLeafs = 0;
-            int emptyLeafs = 0;
-            int nr = 0;
-            foreach(BVHNode node in nodes)
-            {
-                if (node.count > 0)
-                {
-                    nrOfLeafs++;
-                    nr += node.count;
-                }
-                else if (node.count == 0 && node.firstOrLeft != 0)
-                    emptyLeafs++;
-            }
+            if (collapsed4Way)
+                nodes[0].CollapseBVH(nodes, 0);
             hasBVH = true;
 
-            Console.WriteLine("Prims: " + N);
-            Console.WriteLine("BVH Done");
-            Console.WriteLine("Leafs: " + nrOfLeafs);
-            Console.WriteLine("Empty leafs: " + emptyLeafs);
-            Console.WriteLine(nr);
+            if (stats)
+            {
+                sw.Stop();
+                Console.WriteLine("Finished BVH generation after: " + sw.ElapsedMilliseconds + " ms");
+                int nrOfLeafs = 0;
+                int nr = 0;
+                foreach (BVHNode node in nodes)
+                {
+                    if (node.count > 0)
+                    {
+                        nrOfLeafs++;
+                        nr += node.count;
+                    }
+                }
+
+                Console.WriteLine("Prims: " + N);
+                Console.WriteLine("BVH: ");
+                Console.WriteLine("Leafs: " + nrOfLeafs);
+            }
         }
     }
     

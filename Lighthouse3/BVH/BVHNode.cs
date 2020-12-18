@@ -12,9 +12,37 @@ namespace Lighthouse3.BVH
         public int count;
         public int[] childIndices;
 
-        public static readonly int numberOfSplitPlanes = 8;
-        public static readonly float invNumberOfSplitPlanes = 1f / (numberOfSplitPlanes + 1);
-        //public static readonly int maxPrimsPerNode = 5;
+        public static readonly int numberOfBins = 8;
+        //public static readonly float invNumberOfSplitPlanes = 1f / (numberOfBins + 1);
+        public static readonly int maxPrimsPerNode = 1;
+
+        private float k1;
+        private float k0;
+        private int splittingAxis;
+        private float axisSize;
+
+        public BVHNode(AABB bounds, AABB centroidBounds, int firstOrLeft, int count)
+        {
+            this.bounds = bounds;
+            this.centroidBounds = centroidBounds;
+            this.firstOrLeft = firstOrLeft;
+            this.count = count;
+            axisSize = centroidBounds.LongestAxis(out splittingAxis);
+
+            k1 = numberOfBins * (1f - Calc.Epsilon) / axisSize;
+            k0 = centroidBounds.min[splittingAxis];
+            childIndices = new int[4];
+        }
+
+        public BVHNode InitSplittingAxis()
+        {
+            axisSize = centroidBounds.LongestAxis(out splittingAxis);
+
+            k1 = numberOfBins * (1f - Calc.Epsilon) / axisSize;
+            k0 = centroidBounds.min[splittingAxis];
+            childIndices = new int[4];
+            return this;
+        }
 
         private void Swap (Primitive[] primitives, int i, int j)
         {
@@ -52,75 +80,160 @@ namespace Lighthouse3.BVH
 
         public void Subdivide(AABB[] primBounds, int[] indices, BVHNode[] nodes, ref int nodeIndex)
         {
-            //if (count <= maxPrimsPerNode) return;
-            childIndices = new int[4];
-            int axis;
-            float axisSize = centroidBounds.LongestAxis(out axis);
-            if (axisSize < numberOfSplitPlanes * Calc.Epsilon)
+            if (count <= maxPrimsPerNode) return;
+
+
+            if (axisSize < numberOfBins * Calc.Epsilon)
                 return;
-            float currentCost = bounds.SurfaceArea() * count;
-            int bestCountLeft = 0;
-            float bestSplitCost = float.MaxValue;
-            AABB bestLeftBounds = new AABB();
-            AABB bestRightBounds = new AABB();
-            int[] bestSorted = null;
+
+            float optimalSplitCost = bounds.SurfaceArea() * count + Calc.Epsilon;
+            AABB optimalLeftBounds = new AABB();
+            AABB optimalRightBounds = new AABB();
+            int optimalLeftCount = 0;
+            int[] optimalIndices = new int[count];
+
             bool splitting = false;
-            int[] totalSorted = new int[count];
-            for (int i = 0; i < count; i++)
+
+            int leftTrigs = 0;
+            AABB leftBounds = new AABB();
+
+            for (int binIndex = 1; binIndex < numberOfBins + 1; binIndex++)
             {
-                totalSorted[i] = indices[firstOrLeft + i];
-            }
-
-
-
-
-            for (int splitIndex = 0; splitIndex < numberOfSplitPlanes; splitIndex++)
-            {
-                float splitPoint = centroidBounds.min[axis] + axisSize * invNumberOfSplitPlanes * (splitIndex + 1);
-
-                AABB leftBounds = new AABB();
                 AABB rightBounds = new AABB();
-                int countLeft = 0;
-                int countRight = count - 1;
-                int[] sorted = new int[count];
-
-                for (int i = 0; i < count; i++)
+                int rightIndex = count - 1;
+                for (int i = leftTrigs; i <= rightIndex; i++)
                 {
-                    int index = totalSorted[i];
+                    Vector3 centroid1 = primBounds[indices[i + firstOrLeft]].center;
+                    float binID1 = k1 * (centroid1[splittingAxis] - k0);
 
-                    if (primBounds[index].center[axis] < splitPoint)
+                    //Belongs to the left
+                    if (binID1 < binIndex)
                     {
-                        leftBounds = leftBounds.Extend(primBounds[index]);
-                        sorted[countLeft++] = index;
+                        leftBounds = leftBounds.Extend(primBounds[indices[i + firstOrLeft]]);
+                        leftTrigs++;
                     }
                     else
                     {
-                        rightBounds = rightBounds.Extend(primBounds[index]);
-                        sorted[countRight--] = index;
+                        for (int j = rightIndex; j >= i; j--)
+                        {
+                            if (j == i)
+                            {
+                                rightBounds = rightBounds.Extend(primBounds[indices[j + firstOrLeft]]);
+                                break;
+                            }
+                            rightIndex = j - 1;
+                            Vector3 centroid2 = primBounds[indices[j + firstOrLeft]].center;
+                            float binID2 = k1 * (centroid2[splittingAxis] - k0);
+
+
+                            //Belongs to the left, swap 
+                            if (binID2 < binIndex)
+                            {
+                                int temp = indices[i + firstOrLeft];
+                                indices[i + firstOrLeft] = indices[j + firstOrLeft];
+                                indices[j + firstOrLeft] = temp;
+
+                                leftBounds = leftBounds.Extend(primBounds[indices[i + firstOrLeft]]);
+                                leftTrigs++;
+                                rightBounds = rightBounds.Extend(primBounds[indices[j + firstOrLeft]]);
+                                break;
+                            }
+                            else
+                            {
+                                rightBounds = rightBounds.Extend(primBounds[indices[j + firstOrLeft]]);
+                            }
+
+                        }
                     }
                 }
-                //for (int i = countLeft; i < count; i++)
-                //{
-                //    totalSorted[i] = sorted[i];
-                //}
 
-                float leftCost = countLeft * leftBounds.SurfaceArea();
-                float rightCost = (count - countLeft) * rightBounds.SurfaceArea();
-
-                if (leftCost + rightCost >= currentCost - Calc.Epsilon)
+                if (leftTrigs <= 0 || leftTrigs >= count)
                     continue;
 
-                splitting = true;
+                float leftCost = leftTrigs * leftBounds.SurfaceArea();
+                float rightCost = (count - leftTrigs) * rightBounds.SurfaceArea();
+                float cost = leftCost + rightCost;
 
-                if (leftCost + rightCost < bestSplitCost)
+                if (cost < optimalSplitCost)
                 {
-                    bestCountLeft = countLeft;
-                    bestSplitCost = leftCost + rightCost;
-                    bestLeftBounds = leftBounds;
-                    bestRightBounds = rightBounds;
-                    bestSorted = sorted;
+                    splitting = true;
+                    optimalLeftCount = leftTrigs;
+                    optimalSplitCost = cost + Calc.Epsilon;
+                    optimalLeftBounds = leftBounds;
+                    optimalRightBounds = rightBounds;
+                    for (int i = 0; i < count; i++)
+                    {
+                        optimalIndices[i] = indices[firstOrLeft + i];
+                    }
                 }
+
+
             }
+
+
+
+            //int bestCountLeft = 0;
+            //float bestSplitCost = float.MaxValue;
+            //AABB bestLeftBounds = new AABB();
+            //AABB bestRightBounds = new AABB();
+            //int[] bestSorted = null;
+            //bool splitting = false;
+            //int[] totalSorted = new int[count];
+            //for (int i = 0; i < count; i++)
+            //{
+            //    totalSorted[i] = indices[firstOrLeft + i];
+            //}
+
+
+
+
+            //for (int splitIndex = 0; splitIndex < numberOfBins; splitIndex++)
+            //{
+            //    float splitPoint = centroidBounds.min[splittingAxis] + axisSize * invNumberOfSplitPlanes * (splitIndex + 1);
+
+            //    AABB leftBounds = new AABB();
+            //    AABB rightBounds = new AABB();
+            //    int countLeft = 0;
+            //    int countRight = count - 1;
+            //    int[] sorted = new int[count];
+
+            //    for (int i = 0; i < count; i++)
+            //    {
+            //        int index = totalSorted[i];
+
+            //        if (primBounds[index].center[splittingAxis] < splitPoint)
+            //        {
+            //            leftBounds = leftBounds.Extend(primBounds[index]);
+            //            sorted[countLeft++] = index;
+            //        }
+            //        else
+            //        {
+            //            rightBounds = rightBounds.Extend(primBounds[index]);
+            //            sorted[countRight--] = index;
+            //        }
+            //    }
+            //    //for (int i = countLeft; i < count; i++)
+            //    //{
+            //    //    totalSorted[i] = sorted[i];
+            //    //}
+
+            //    float leftCost = countLeft * leftBounds.SurfaceArea();
+            //    float rightCost = (count - countLeft) * rightBounds.SurfaceArea();
+
+            //    if (leftCost + rightCost >= currentCost - Calc.Epsilon)
+            //        continue;
+
+            //    splitting = true;
+
+            //    if (leftCost + rightCost < bestSplitCost)
+            //    {
+            //        bestCountLeft = countLeft;
+            //        bestSplitCost = leftCost + rightCost;
+            //        bestLeftBounds = leftBounds;
+            //        bestRightBounds = rightBounds;
+            //        bestSorted = sorted;
+            //    }
+            //}
 
             // If one of the children is empty, change bounds and resplit
             if (!splitting)
@@ -143,18 +256,19 @@ namespace Lighthouse3.BVH
             // Overwrite primitives in global array with sorted ones
             for (int i = 0; i < count; i++)
             {
-                indices[firstOrLeft + i] = bestSorted[i];
+                indices[firstOrLeft + i] = optimalIndices[i];
             }
-
             // Give first index and count to child nodes
             nodes[nodeIndex].firstOrLeft = firstOrLeft;
-            nodes[nodeIndex].count = bestCountLeft;
-            nodes[nodeIndex].bounds = bestLeftBounds;
+            nodes[nodeIndex].count = optimalLeftCount;
+            nodes[nodeIndex].bounds = optimalLeftBounds;
             nodes[nodeIndex].centroidBounds = nodes[nodeIndex].CentroidAABB(primBounds, indices);
-            nodes[nodeIndex + 1].firstOrLeft = firstOrLeft + bestCountLeft;
-            nodes[nodeIndex + 1].count = count - bestCountLeft;
-            nodes[nodeIndex + 1].bounds = bestRightBounds;
+            nodes[nodeIndex] = nodes[nodeIndex].InitSplittingAxis();
+            nodes[nodeIndex + 1].firstOrLeft = firstOrLeft + optimalLeftCount;
+            nodes[nodeIndex + 1].count = count - optimalLeftCount;
+            nodes[nodeIndex + 1].bounds = optimalRightBounds;
             nodes[nodeIndex + 1].centroidBounds = nodes[nodeIndex + 1].CentroidAABB(primBounds, indices);
+            nodes[nodeIndex + 1] = nodes[nodeIndex + 1].InitSplittingAxis();
 
 
             childIndices[0] = nodeIndex;

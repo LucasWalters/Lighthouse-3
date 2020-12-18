@@ -185,6 +185,16 @@ namespace Lighthouse3
         {
             return n < 0 ? -1f : 1f;
         }
+
+        public static Vector3 Vector3MaxValue()
+        {
+            return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        }
+
+        public static Vector3 Vector3MinValue()
+        {
+            return new Vector3(float.MinValue, float.MinValue, float.MinValue);
+        }
     }
 
     public static class Extensions

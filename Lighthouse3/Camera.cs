@@ -264,7 +264,7 @@ namespace Lighthouse3
             {
                 Frame(scene);
                 stopwatch.Stop();
-                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
                 return;
             }
             threadsFinished = 0;
@@ -288,7 +288,7 @@ namespace Lighthouse3
                         pixelsChanged = true;
                         rendering = false;
                         stopwatch.Stop();
-                        Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds);
+                        Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
                     }
                 });
                 Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));

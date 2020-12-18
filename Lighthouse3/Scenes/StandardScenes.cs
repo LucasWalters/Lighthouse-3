@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Lighthouse3.Lights;
 using Lighthouse3.Primitives;
 using OpenTK;
@@ -8,8 +9,10 @@ namespace Lighthouse3.Scenes
 {
     public class StandardScenes
     {
+        public static Scene CURRENT_SCENE = TeapotScene();
+
         // Scene with an "impossible" triangle tried to put into a persepctive where it actually looks impossible
-        public static Scene OBJScene()
+        public static Scene SimpleOBJScene()
         {
             Scene scene = new Scene();
             RayTracers.RayTracer rayTracer = RayTracers.RayTracer.Whitted;
@@ -37,7 +40,7 @@ namespace Lighthouse3.Scenes
                 scene.lights = new Light[] { new AreaLight(new Vector3(20, 10, 20), new Vector3(-20, 10, 20), new Vector3(20, 10, -20), Color.White, 0.2f) };
 
             scene.primitives = ObjectLoader.GetObjTriangles("../../assets/impossible_triangle.obj");
-            scene.CalculateBVH();
+            scene.CalculateBVH(stats: false, collapsed4Way: false);
             return scene;
         }
 
@@ -70,7 +73,40 @@ namespace Lighthouse3.Scenes
                 scene.lights = new Light[] { new AreaLight(new Vector3(10, 6, 0), new Vector3(-10, 6, 0), new Vector3(10, 6, -10), Color.White, 1f) };
 
             scene.primitives = ObjectLoader.GetObjTriangles("../../assets/teapot.obj");
-            scene.CalculateBVH();
+
+            scene.CalculateBVH(stats: true, collapsed4Way: true);
+            return scene;
+        }
+        public static Scene KnightScene()
+        {
+            Scene scene = new Scene();
+            RayTracers.RayTracer rayTracer = RayTracers.RayTracer.Whitted;
+
+            scene.mainCamera =
+                new Camera(
+                    position: new Vector3(0, 50, 10),
+                    direction: new Vector3(0, -1, 0.005f).Normalized(),
+                    Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
+                    projection: Camera.ProjectionType.Perspective,
+                    screenDistance: 1.5f,
+                    raysPerPixel: 1,
+                    rayTracer: rayTracer,
+                    antiAliasing: false,
+                    vignettingFactor: 2f,
+                    gammaCorrection: false,
+                    distortion: 0f, // Only if projection is set to Distortion
+                    stratification: true
+                );
+            scene.backgroundColor = Color.Black;
+
+            if (rayTracer == RayTracers.RayTracer.Whitted)
+                scene.lights = new Light[] { new PointLight(new Vector3(0, 50, 0), Color.White, 5000) };
+            else
+                scene.lights = new Light[] { new AreaLight(new Vector3(20, 15, 20), new Vector3(0, 15, 20), new Vector3(20, 15, 0), Color.White, 1f) };
+
+            scene.primitives = ObjectLoader.GetObjTriangles("../../assets/knight/180212_Erik_XIV_Rustning_2.obj");
+
+            scene.CalculateBVH(stats: true, collapsed4Way: true);
             return scene;
         }
 
