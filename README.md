@@ -5,30 +5,19 @@ Created by Lucas Walters (5037883) and Kwinten Jacobs (7006233)
 
 =======
 List of features:
-- Whitted style ray tracer
-- Kajiya style path tracer
-- A controllable camera with configurable position, orientation, FOV and aspect ratio (controls below)
-- Direct illumination with distance attenuation and angle on diffuse surfaces
-- Planes, rectangles, spheres and triangles primitives
-- (Glossy) mirror, glass, diffuse materials
-- Dielectrics with fresnel factor
-- Multithreaded ray tracing
-- Continually sending of rays each frame and averaging the results
-- Vignetting, barrel distortion and pincushion distortion
-- Anti-aliasing, depth of field & Gamma correction
-- OBJ loader for importing .obj files
-- The project name
+- BVH implementation of the teapot scene with >10k triangles
+- Teapot scene renders at least 6x faster with our binary BVH
+- OBJ scene renders at least 4x faster with our binary BVH
+- Binning over 8 split planes + optimal split plane selection using SAH
+- 4-way BVH by collapsing the 2-way BVH (but with reduced performance)
+- BVH generation of 1 million triangles in 8s
 
 ========
 Important classes:
-- Scene.cs : Contains all basic scenes (e.g OBJScene, WhittedScene, KajiyaScene).
-- ObjectLoader.cs : Loads and triangulates .obj files.
-- Ray.cs : The logic for sending rays and finding intersections with primitives.
-- Kajiya.cs : The logic for the Kayija style path tracer
-- Whitted.cs : The logic for the whitted style ray tracer
-- Camera.cs : The logic for the camera and the multithreading.
-- game.cs : Contains the logic for user input and where a scene is selected to be loaded in.
-- Calc.cs : Contains math helper functions and random number generators
+- Scene.cs : Contains the BVH and the root node construction. On line 51, uncommenting the line enables 4-way BVH generation.
+- BVHNode.cs : Contains the BVH subdivide logic and the BVH collapse into 4-way BVH logic
+- AABB.cs : Contains the logic for bounding box calculation
+
 ========
 Controls:
 
