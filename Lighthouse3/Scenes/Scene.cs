@@ -47,6 +47,10 @@ namespace Lighthouse3.Scenes
             nodes[0].centroidBounds = nodes[0].CentroidAABB(primBounds, indices);
             nodes[0].Subdivide(primBounds, indices, nodes, ref index);
 
+            // Collapse into 4-way BVH
+            nodes[0].CollapseBVH(nodes, 0);
+
+            // DEBUG INFO
             int nrOfLeafs = 0;
             int emptyLeafs = 0;
             int nr = 0;

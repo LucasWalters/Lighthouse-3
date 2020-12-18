@@ -10,6 +10,7 @@ namespace Lighthouse3.BVH
         public AABB centroidBounds;
         public int firstOrLeft;
         public int count;
+        public int[] childIndices;
 
         public static readonly int numberOfSplitPlanes = 8;
         public static readonly float invNumberOfSplitPlanes = 1f / (numberOfSplitPlanes + 1);
@@ -52,7 +53,7 @@ namespace Lighthouse3.BVH
         public void Subdivide(AABB[] primBounds, int[] indices, BVHNode[] nodes, ref int nodeIndex)
         {
             //if (count <= maxPrimsPerNode) return;
-
+            childIndices = new int[4];
             int axis;
             float axisSize = centroidBounds.LongestAxis(out axis);
             if (axisSize < numberOfSplitPlanes * Calc.Epsilon)
@@ -155,6 +156,10 @@ namespace Lighthouse3.BVH
             nodes[nodeIndex + 1].bounds = bestRightBounds;
             nodes[nodeIndex + 1].centroidBounds = nodes[nodeIndex + 1].CentroidAABB(primBounds, indices);
 
+
+            childIndices[0] = nodeIndex;
+            childIndices[1] = nodeIndex + 1;
+
             //Console.WriteLine("Allocated " + countLeft + " to left");
             //Console.WriteLine("Allocated " + (count - countLeft) + " to right");
 
@@ -178,6 +183,31 @@ namespace Lighthouse3.BVH
                 nodePrimitives[i] = primitives[firstOrLeft + i];
             }
             return nodePrimitives;
+        }
+
+        public void CollapseBVH(BVHNode[] nodes, int depth)
+        {
+            if(depth % 2 != 0)
+            {
+                nodes[firstOrLeft].CollapseBVH(nodes, depth + 1);
+                nodes[firstOrLeft + 1].CollapseBVH(nodes, depth + 1);
+            }
+            
+            BVHNode childLeft = nodes[firstOrLeft];
+            BVHNode childRight = nodes[firstOrLeft + 1];
+
+            //if(childLeft.count < 0)
+            {
+                childIndices[0] = childLeft.firstOrLeft;
+                childIndices[1] = childLeft.firstOrLeft + 1;
+            }
+
+            //if (childRight.count < 0)
+            {
+                childIndices[2] = childRight.firstOrLeft;
+                childIndices[3] = childRight.firstOrLeft + 1;
+            }
+
         }
     }
 }

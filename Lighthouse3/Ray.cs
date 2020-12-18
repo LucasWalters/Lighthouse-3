@@ -91,8 +91,12 @@ namespace Lighthouse3
             {
                 if (node.count < 0)
                 {
-                    intersection = IntersectNode(scene, scene.nodes[node.firstOrLeft], intersection, debug);
-                    intersection = IntersectNode(scene, scene.nodes[node.firstOrLeft + 1], intersection, debug);
+                    int[] indices = node.childIndices;
+                    for(int i = 0; i < indices.Length; i++)
+                    {
+                        if (indices[i] == 0) continue;
+                        intersection = IntersectNode(scene, scene.nodes[indices[i]], intersection, debug);
+                    }
                 }
                 else
                 {
