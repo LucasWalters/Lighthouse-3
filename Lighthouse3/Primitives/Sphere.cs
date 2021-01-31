@@ -30,7 +30,7 @@ namespace Lighthouse3.Primitives
             // if (tca < 0) return false;
             float d2 = Vector3.Dot(L, L) - tca * tca; 
             if (d2 > radiusSquared) return false; 
-            float thc = (float)Math.Sqrt(radiusSquared - d2); 
+            float thc = Calc.Sqrt(radiusSquared - d2); 
             float t0 = tca - thc; 
             float t1 = tca + thc;
             if (t0 > t1)
@@ -47,7 +47,7 @@ namespace Lighthouse3.Primitives
             }
 
             t = t0;
-            return true;
+            return t < ray.distance;
         }
 
         public override Vector3 Normal(Intersection intersection = null)

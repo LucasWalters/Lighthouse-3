@@ -10,7 +10,7 @@ namespace Lighthouse3.RayTracers
 {
     public static class Whitted
     {
-        public const int MaxDepth = 10;
+        public const int MaxDepth = 500;
 
         // Returns a color
         public static Vector3 TraceRay(Ray ray, Scene scene, int depth = 1, float currentRefractiveIndex = Material.RefractiveIndex.Vacuum, float lastRefractiveIndex = Material.RefractiveIndex.Vacuum, bool debug = false)
@@ -26,7 +26,8 @@ namespace Lighthouse3.RayTracers
             Intersection intersection = ray.NearestIntersection(scene, debug);
             if (intersection == null)
                 return scene.backgroundColor;
-            
+
+
 
             Vector3 color = Color.Black;
             Material material = intersection.hit.material;
@@ -36,6 +37,14 @@ namespace Lighthouse3.RayTracers
             {
                 normal = -normal;
                 backface = true;
+            }
+
+            if (material.emissive > 0f)
+            {
+                if (debug)
+                    Console.WriteLine("Light hit!");
+
+                return material.color * material.emissive;
             }
 
             //Handle diffuse color
@@ -111,12 +120,18 @@ namespace Lighthouse3.RayTracers
             }
 
             //Render checkerboard pattern
-            if (material.isCheckerboard)
+            if (material.checkerboard > 0)
             {
                 Vector3 point = ray.GetPoint(intersection.distance);
-                int x = (int)Math.Floor(point.X);
-                int y = (int)Math.Floor(point.Y);
-                int z = (int)Math.Floor(point.Z);
+                int x = (int)(point.X / material.checkerboard);
+                if (point.X < 0)
+                    x++;
+                int y = (int)(point.Y / material.checkerboard);
+                if (point.Y < 0)
+                    y++;
+                int z = (int)(point.Z / material.checkerboard);
+                if (point.Z < 0)
+                    z++;
                 bool isEven = (x + y + z) % 2 == 0;
                 return (material.color * (isEven ? 1 : 0.5f)) * color;
             }

@@ -21,5 +21,15 @@ namespace Lighthouse3
 
             return b + (g << 8) + (r << 16);
         }
+
+        static float inv256 = 1 / 256f;
+
+        public static Vector3 FromARBG(int color)
+        {
+            float b = (color & 255) * inv256;
+            float g = ((color >> 8) & 255) * inv256;
+            float r = ((color >> 16) & 255) * inv256;
+            return new Vector3(r, g, b);
+        }
     }
 }

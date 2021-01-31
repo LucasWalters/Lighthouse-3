@@ -1,4 +1,5 @@
 ﻿using Lighthouse3.Lights;
+using Lighthouse3.Primitives;
 using Lighthouse3.Scenes;
 using OpenTK;
 using System;
@@ -11,7 +12,8 @@ namespace Lighthouse3.RayTracers
 {
     public static class PathTracer
     {
-        public const int MaxDepth = 10;
+        public const int MaxDepth = 100;
+        public static bool MIS = true;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
         {
@@ -21,6 +23,7 @@ namespace Lighthouse3.RayTracers
             int depth = 0;
             float currentRefractiveIndex = Material.RefractiveIndex.Vacuum;
             float lastRefractiveIndex = Material.RefractiveIndex.Vacuum;
+            float cos_i = 0;
             while (true)
             {
                 Intersection intersection = ray.NearestIntersection(scene, debug);
@@ -32,12 +35,28 @@ namespace Lighthouse3.RayTracers
 
                 Material material = intersection.hit.material;
 
-                if (material.emissive)
+                if (material.emissive > 0f)
                 {
                     if (debug)
                         Console.WriteLine("Light hit!");
-                    if (sampleLight)
-                        totalEnergy += totalColor * material.color;
+
+                    Vector3 c = totalColor * material.color * material.emissive;
+
+                    if (!sampleLight)
+                    {
+                        if (!MIS)
+                            break;
+
+                        Rectangle rect = (Rectangle)intersection.hit;
+                        float cos_o = Vector3.Dot(-ray.direction, rect.normal);
+                        float solidAngle = (cos_o * rect.area) / (intersection.distance * intersection.distance);
+                        float lightPDF = 1f / solidAngle;
+                        float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
+                        float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(brdfPDF, lightPDF);
+                        c *= cos_i / misPDF;
+                    }
+
+                    totalEnergy += c;
                     break;
                 }
 
@@ -67,7 +86,6 @@ namespace Lighthouse3.RayTracers
 
                     int nrLights = scene.lights.Length;
                     AreaLight light = (AreaLight)scene.lights[nrLights > 1 ? Calc.RandomInt(0, nrLights) : 0];
-                    //totalEnergy += totalColor * BRDF * light.DirectIllumination(intersection, normal, scene, debug) * nrLights;
 
 
                     // Direct Illumination
@@ -77,7 +95,7 @@ namespace Lighthouse3.RayTracers
                     float dist = toLight.Length;
                     toLight /= dist;
                     float cos_o = Vector3.Dot(-toLight, light.rect.normal);
-                    float cos_i = Vector3.Dot(toLight, normal);
+                    cos_i = Vector3.Dot(toLight, normal);
                     if (cos_o > 0 && cos_i > 0)
                     {
                         // light is not behind surface point, trace shadow ray
@@ -88,10 +106,28 @@ namespace Lighthouse3.RayTracers
                             // light is visible (V(p,p’)=1); calculate transport
                             float solidAngle = (cos_o * light.rect.area) / (dist * dist);
                             float lightPDF = 1f / solidAngle;
-                            float brdfPDF = cos_i * Calc.InvPi;
-                            float misPDF = lightPDF + brdfPDF;
+                            float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
+                            float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(lightPDF, brdfPDF);
                             // Multiply result with the number of lights in the scene
-                            totalEnergy += totalColor * (cos_i / misPDF) * BRDF * light.color * nrLights * light.intensity;
+
+                            Vector3 c = totalColor * (cos_i / (MIS ?  misPDF : lightPDF)) * BRDF * light.color * nrLights * light.intensity;
+                            //Render checkerboard pattern
+                            if (material.checkerboard > 0)
+                            {
+                                Vector3 point = ray.GetPoint(intersection.distance);
+                                int x = (int)(point.X / material.checkerboard);
+                                if (point.X < 0)
+                                    x++;
+                                int y = (int)(point.Y / material.checkerboard);
+                                if (point.Y < 0)
+                                    y++;
+                                int z = (int)(point.Z / material.checkerboard);
+                                if (point.Z < 0)
+                                    z++;
+                                bool isEven = (x + y + z) % 2 == 0;
+                                c *= (isEven ? 1 : 0.5f);
+                            }
+                            totalEnergy += c;
                         }
                     }
 
@@ -100,11 +136,11 @@ namespace Lighthouse3.RayTracers
                     if (Calc.Random() > survivalChance)
                         break;
 
-                    ray = ray.RandomReflectCosineWeighted(intersection.distance, normal);
+                    ray = ray.RandomReflect(intersection.distance, normal);
                     float nDotR = Vector3.Dot(normal, ray.direction);
-                    float PDF = nDotR * Calc.InvPi;
-                    totalColor *= (1f / survivalChance) * BRDF * nDotR / PDF;
+                    float PDF = Calc.Inv2Pi; //nDotR * Calc.InvPi;   Currently not using cosine random reflections
                     sampleLight = false;
+                    totalColor *= (1f / survivalChance) * BRDF * nDotR / PDF;
                 }
                 //Handle specularity
                 else if (materialTypeRandom < material.specularity + material.diffuse)
@@ -156,18 +192,7 @@ namespace Lighthouse3.RayTracers
 
             
 
-            //Render checkerboard pattern
-            //if (material.isCheckerboard)
-            //{
-            //    Vector3 point = ray.GetPoint(intersection.distance);
-            //    int x = (int)Math.Floor(point.X);
-            //    int y = (int)Math.Floor(point.Y);
-            //    int z = (int)Math.Floor(point.Z);
-            //    bool isEven = (x + y + z) % 2 == 0;
-            //    color *= (isEven ? 1 : 0.5f);
-            //}
-
-            //return material.color * color;
+            
         }
     }
 }

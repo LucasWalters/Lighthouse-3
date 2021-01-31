@@ -43,7 +43,7 @@ namespace Lighthouse3.Primitives
             if (v < 0 || u + v > 1) return false;
 
             t = Vector3.Dot(v0v2, qvec) * invDet;
-            return t > 0;
+            return t > 0 && t < ray.distance;
         }
 
         public override Vector3 Normal(Intersection intersection = null)

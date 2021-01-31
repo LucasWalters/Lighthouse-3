@@ -20,6 +20,7 @@ namespace Lighthouse3
         // Direction should be normalized
         public Ray(Vector3 startPosition, Vector3 direction)
         {
+            this.distance = float.MaxValue;
             this.origin = startPosition;
             if (direction.LengthSquared != 0)
                 direction = direction.Normalized();
@@ -27,12 +28,10 @@ namespace Lighthouse3
             invDir.X = 1f / direction.X;
             invDir.Y = 1f / direction.Y;
             invDir.Z = 1f / direction.Z;
-            distance = float.MaxValue;
         }
 
         public void SetDirection(Vector3 direction)
         {
-            distance = float.MaxValue;
             this.direction = direction;
             invDir.X = 1f / direction.X;
             invDir.Y = 1f / direction.Y;
@@ -46,6 +45,7 @@ namespace Lighthouse3
 
         public Intersection NearestIntersection(Scene scene, bool debug = false)
         {
+            distance = float.MaxValue;
             Intersection intersection = new Intersection(int.MaxValue, this, null);
 
             intersection = scene.hasBVH ? 
@@ -62,6 +62,7 @@ namespace Lighthouse3
                     if (intersected && t < intersection.distance)
                     {
                         intersection = new Intersection(t, this, rect);
+                        distance = t;
                     }
                 }
             }
@@ -72,6 +73,7 @@ namespace Lighthouse3
                 if (intersected && t < intersection.distance)
                 {
                     intersection = new Intersection(t, this, plane);
+                    distance = t;
                 }
             }
 
@@ -126,6 +128,7 @@ namespace Lighthouse3
                         Console.WriteLine("Intersected! At: " + first + i);
                     }
                     intersection = new Intersection(t, this, scene.primitives[index]);
+                    distance = t;
                 }
             }
             return intersection;
@@ -140,6 +143,7 @@ namespace Lighthouse3
                 if (intersected && t < intersection.distance)
                 {
                     intersection = new Intersection(t, this, primitive);
+                    distance = t;
                 }
             }
             return intersection;
@@ -147,6 +151,7 @@ namespace Lighthouse3
 
         public bool Occluded(Primitive[] primitives, float distance)
         {
+            this.distance = distance;
             foreach (Primitive primitive in primitives)
             {
                 float t;
@@ -159,6 +164,7 @@ namespace Lighthouse3
 
         public bool OccludedSquared(Primitive[] primitives, float distanceSquared)
         {
+            this.distance = float.MaxValue;
             foreach (Primitive primitive in primitives)
             {
                 float t;
@@ -226,16 +232,16 @@ namespace Lighthouse3
                     reflectionChance = 1f;
                     return this;
                 }
-                cosX = (float)Math.Sqrt(1.0f - int_sinT2);
+                cosX = Calc.Sqrt(1.0f - int_sinT2);
             } 
             else
             {
                 float sinT2 = eta * eta * (1f - cosX * cosX);
-                cosX = (float)Math.Sqrt(1.0f - sinT2);
+                cosX = Calc.Sqrt(1.0f - sinT2);
             }
             Vector3 rDirection = eta * direction - (eta + cosX) * normal;
             Vector3 rOrigin = GetPoint(distance) + rDirection * Calc.Epsilon;
-            reflectionChance = r0 + (1.0f - r0) * (float)Math.Pow(1.0f - cosX, 5.0f);
+            reflectionChance = r0 + (1.0f - r0) * Calc.Pow(1.0f - cosX, 5);
             return new Ray(rOrigin, rDirection);
         }
     }

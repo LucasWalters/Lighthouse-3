@@ -16,7 +16,7 @@ namespace Lighthouse3.Lights
 
         public AreaLight(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 color, float intensity) : base(color, intensity)
         {
-            Material mat = new Material(color, emissive: true);
+            Material mat = new Material(color, emissive: intensity);
             rect = new Rectangle(topLeft, topRight, bottomLeft, mat);
         }
 

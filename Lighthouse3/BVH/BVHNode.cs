@@ -78,6 +78,7 @@ namespace Lighthouse3.BVH
             return r.ResetCenter();
         }
 
+        // Subdivide based on: https://www.researchgate.net/publication/4278645_On_Fast_Construction_of_SAH_based_Bounding_Volume_Hierarchies
         public void Subdivide(AABB[] primBounds, int[] indices, BVHNode[] nodes, ref int nodeIndex)
         {
             if (count <= maxPrimsPerNode) return;
@@ -166,92 +167,13 @@ namespace Lighthouse3.BVH
                         optimalIndices[i] = indices[firstOrLeft + i];
                     }
                 }
-
-
             }
-
-
-
-            //int bestCountLeft = 0;
-            //float bestSplitCost = float.MaxValue;
-            //AABB bestLeftBounds = new AABB();
-            //AABB bestRightBounds = new AABB();
-            //int[] bestSorted = null;
-            //bool splitting = false;
-            //int[] totalSorted = new int[count];
-            //for (int i = 0; i < count; i++)
-            //{
-            //    totalSorted[i] = indices[firstOrLeft + i];
-            //}
-
-
-
-
-            //for (int splitIndex = 0; splitIndex < numberOfBins; splitIndex++)
-            //{
-            //    float splitPoint = centroidBounds.min[splittingAxis] + axisSize * invNumberOfSplitPlanes * (splitIndex + 1);
-
-            //    AABB leftBounds = new AABB();
-            //    AABB rightBounds = new AABB();
-            //    int countLeft = 0;
-            //    int countRight = count - 1;
-            //    int[] sorted = new int[count];
-
-            //    for (int i = 0; i < count; i++)
-            //    {
-            //        int index = totalSorted[i];
-
-            //        if (primBounds[index].center[splittingAxis] < splitPoint)
-            //        {
-            //            leftBounds = leftBounds.Extend(primBounds[index]);
-            //            sorted[countLeft++] = index;
-            //        }
-            //        else
-            //        {
-            //            rightBounds = rightBounds.Extend(primBounds[index]);
-            //            sorted[countRight--] = index;
-            //        }
-            //    }
-            //    //for (int i = countLeft; i < count; i++)
-            //    //{
-            //    //    totalSorted[i] = sorted[i];
-            //    //}
-
-            //    float leftCost = countLeft * leftBounds.SurfaceArea();
-            //    float rightCost = (count - countLeft) * rightBounds.SurfaceArea();
-
-            //    if (leftCost + rightCost >= currentCost - Calc.Epsilon)
-            //        continue;
-
-            //    splitting = true;
-
-            //    if (leftCost + rightCost < bestSplitCost)
-            //    {
-            //        bestCountLeft = countLeft;
-            //        bestSplitCost = leftCost + rightCost;
-            //        bestLeftBounds = leftBounds;
-            //        bestRightBounds = rightBounds;
-            //        bestSorted = sorted;
-            //    }
-            //}
 
             // If one of the children is empty, change bounds and resplit
             if (!splitting)
             {
-                //bounds = countLeft == 0 ? rightBounds : leftBounds;
-                //Subdivide(primitives, indices, nodes, ref nodeIndex);
                 return;
             }
-            //int bestCountLeft = 0;
-            //int bestCountRight = count - 1;
-            //for (int i = countLeft; i < count; i++)
-            //{
-            //    int index = indices[firstOrLeft + i];
-            //    if (primBounds[index].center[axis] < bestSplitPoint)
-            //        sorted[bestCountLeft++] = index;
-            //    else
-            //        sorted[bestCountRight--] = index;
-            //}
 
             // Overwrite primitives in global array with sorted ones
             for (int i = 0; i < count; i++)
@@ -273,9 +195,6 @@ namespace Lighthouse3.BVH
 
             childIndices[0] = nodeIndex;
             childIndices[1] = nodeIndex + 1;
-
-            //Console.WriteLine("Allocated " + countLeft + " to left");
-            //Console.WriteLine("Allocated " + (count - countLeft) + " to right");
 
             // first is now left and count is -1 because we no longer have primitives
             firstOrLeft = nodeIndex;

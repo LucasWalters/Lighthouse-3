@@ -31,7 +31,7 @@ namespace Lighthouse3.Primitives
             if (t < 0)
             {
                 t /= rayDot;
-                return true;
+                return t < ray.distance;
             }
             return false;
         }

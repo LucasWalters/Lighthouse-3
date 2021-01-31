@@ -24,7 +24,7 @@ namespace Lighthouse3.Primitives
             this.bottomLeft = bottomLeft;
             side1 = topRight - topLeft;
             side2 = bottomLeft - topLeft;
-            normal = Vector3.Cross(side1, side2);
+            normal = Vector3.Cross(side1, side2).Normalized();
             area = side1.Length * side2.Length;
             bounds.min = Min();
             bounds.max = Max();
@@ -44,6 +44,8 @@ namespace Lighthouse3.Primitives
             if (t < 0)
             {
                 t /= rayDot;
+                if (t >= ray.distance)
+                    return false;
                 Vector3 toPoint = ray.GetPoint(t) - topLeft;
                 float dotSide1 = Vector3.Dot(side1, toPoint);
                 float dotSide2 = Vector3.Dot(side2, toPoint);

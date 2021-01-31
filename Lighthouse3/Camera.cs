@@ -14,6 +14,8 @@ namespace Lighthouse3
 {
     public class Camera
     {
+        public static bool timeFrames = true;
+
         //World position of the camera
         public Vector3 position;
         //View direction of the camera - should be normalized
@@ -50,12 +52,13 @@ namespace Lighthouse3
         public Vector3 screenCenter;
 
         public Vector3[] pixelColors;
+        public Vector3[] illumination;
         public Ray[] rays;
         public int[] pixels;
         public bool pixelsChanged = false;
         public int numberOfThreads;
+        public int frames = 0;
         TracingThread[] threads;
-        int frames = 0;
         int threadsFinished = 0;
         bool rendering = false;
         bool resetFrame = true;
@@ -63,6 +66,7 @@ namespace Lighthouse3
         public float vignettingFactor;
         float aspectRatio;
         bool stratification;
+        bool blueNoise;
         int strata = 0;
         float invStrata;
         float invRaysPerPixel;
@@ -71,11 +75,13 @@ namespace Lighthouse3
         float heightPerPixel;
         Stopwatch stopwatch;
 
+        private readonly object syncLock = new object();
+
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
             bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float distortion = 0.2f,
-            float vignettingFactor = 0f, bool stratification = false)
+            float vignettingFactor = 0f, bool stratification = false, bool blueNoise = false)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -93,6 +99,7 @@ namespace Lighthouse3
             this.distortion = distortion;
             this.vignettingFactor = vignettingFactor;
             this.stratification = stratification;
+            this.blueNoise = blueNoise;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             if (Math.Abs(direction.X) == 1f)
@@ -189,9 +196,19 @@ namespace Lighthouse3
         // Maps pixel position to world position with max 0.5 offset in x or y direction, x = [0, screenWidth), y = [0, screenHeight)
         public Vector3 GetRandomizedPixelPos(int x, int y, int index = 0)
         {
+            float u, v;
 
-            float u = Calc.Random();
-            float v = Calc.Random();
+            if (blueNoise && frames < 8)
+            {
+                Vector2 noise = Noise.Read(x, y, frames - 1);
+                u = noise.X;
+                v = noise.Y;
+            }
+            else
+            {
+                u = Calc.Random();
+                v = Calc.Random();
+            }
             if (stratification)
             {
                 u = (index % strata) * invStrata + u * invStrata;
@@ -253,18 +270,23 @@ namespace Lighthouse3
             if (rendering)
                 return;
             rendering = true;
-            stopwatch = Stopwatch.StartNew();
+            if (timeFrames)
+                stopwatch = Stopwatch.StartNew();
             if (resetFrame)
             {
                 pixelColors = new Vector3[screenWidth * screenHeight];
+                illumination = new Vector3[screenWidth * screenHeight];
                 frames = 0;
                 resetFrame = false;
             }
             if (numberOfThreads < 2)
             {
                 Frame(scene);
-                stopwatch.Stop();
-                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
+                if (timeFrames)
+                {
+                    stopwatch.Stop();
+                    Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
+                }
                 return;
             }
             threadsFinished = 0;
@@ -283,12 +305,19 @@ namespace Lighthouse3
                             pixels[index] = ColorToPixel(pixelColors[index] * framesDivider);
                         }
                     }
-                    if (++threadsFinished == numberOfThreads)
+                    lock (syncLock)
                     {
-                        pixelsChanged = true;
-                        rendering = false;
-                        stopwatch.Stop();
-                        Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
+                        if (++threadsFinished == numberOfThreads)
+                        {
+                            pixelsChanged = true;
+                            rendering = false;
+
+                            if (timeFrames)
+                            {
+                                stopwatch.Stop();
+                                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
+                            }
+                        }
                     }
                 });
                 Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));
@@ -309,14 +338,16 @@ namespace Lighthouse3
                 Vector3 combinedColour = Vector3.Zero;
                 for (int i = 0; i < raysPerPixel; i++)
                 {
-                    combinedColour += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug) * vignette;
+                    combinedColour += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug);
                 }
-                pixelColors[index] += combinedColour * invRaysPerPixel;
+                pixelColors[index] += combinedColour * invRaysPerPixel * vignette;
             }
             else
             {
                 pixelColors[index] += TraceRay(rays[index], scene, debug) * vignette;
             }
+
+
         }
 
         public void DebugRay(Scene scene, int x, int y)
@@ -348,7 +379,7 @@ namespace Lighthouse3
 
         public void RotateX(float angle)
         {
-            angle = angle * (float)Math.PI / 180;
+            angle = angle * Calc.Pi / 180f;
             Quaternion q = Quaternion.FromAxisAngle(-left, angle);
             direction = Vector3.Transform(direction, q);
             up = Vector3.Transform(up, q);
@@ -356,7 +387,7 @@ namespace Lighthouse3
 
         public void RotateY(float angle)
         {
-            angle = angle * (float)Math.PI / 180;
+            angle = angle * Calc.Pi / 180f;
             Quaternion q = Quaternion.FromAxisAngle(up, angle);
             direction = Vector3.Transform(direction, q);
             //up = Vector3.Transform(up, q);
@@ -364,7 +395,7 @@ namespace Lighthouse3
 
         public void RotateZ(float angle)
         {
-            angle = angle * (float)Math.PI / 180;
+            angle = angle * Calc.Pi / 180f;
             Quaternion q = Quaternion.FromAxisAngle(direction, angle);
             //direction = Vector3.Transform(direction, q);
             up = Vector3.Transform(up, q);

@@ -1,8 +1,6 @@
 ﻿using OpenTK;
 using OpenTK.Graphics;
 using System;
-using System.Collections;
-using System.Threading;
 
 namespace Lighthouse3
 {
@@ -13,6 +11,7 @@ namespace Lighthouse3
 
         public static float Epsilon = 0.0005f;
         public static float InvPi { get; private set; }
+        public static float Inv2Pi { get; private set; }
         public static float Pi { get; private set; }
 
         //Init should be called separately for every thread
@@ -21,7 +20,10 @@ namespace Lighthouse3
             seed = (uint)(new Random().Next() * uint.MaxValue);
 
             Pi = (float)Math.PI;
-            InvPi = 1f / (float)Math.PI;
+            InvPi = 1f / Pi;
+            Inv2Pi = 1f / (2 * Pi);
+            Sqrt(5);
+
         }
 
         //Inverse lerp, maps value to [0, 1] based on min and max values
@@ -175,7 +177,6 @@ namespace Lighthouse3
             Vector3 T = new Vector3(b, sign + N.Y * N.Y * a, -N.Y);
             return new Vector3(Vector3.Dot(V, T), Vector3.Dot(V, B), Vector3.Dot(V, N));
         }
-
         public static float Sqrt(float n)
         {
             return (float)Math.Sqrt(n);
@@ -186,6 +187,14 @@ namespace Lighthouse3
             return n < 0 ? -1f : 1f;
         }
 
+        public static float Pow(float x, int pow)
+        {
+            float result = x;
+            for (int i = 1; i < pow; i++)
+                result *= x;
+            return result;
+        }
+
         public static Vector3 Vector3MaxValue()
         {
             return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -194,6 +203,14 @@ namespace Lighthouse3
         public static Vector3 Vector3MinValue()
         {
             return new Vector3(float.MinValue, float.MinValue, float.MinValue);
+        }
+
+        // From https://github.com/mitsuba-renderer/mitsuba, Power of 2 determined empirically by Veach
+        public static float PowerHeuristic(float pdfA, float pdfB)
+        {
+            pdfA *= pdfA;
+            pdfB *= pdfB;
+            return pdfA / (pdfA + pdfB);
         }
     }
 
@@ -233,52 +250,10 @@ namespace Lighthouse3
 
         public static Vector3 Sqrt(this Vector3 vector)
         {
-            float x = (float)Math.Sqrt(vector.X);
-            float y = (float)Math.Sqrt(vector.Y);
-            float z = (float)Math.Sqrt(vector.Z);
+            float x = Calc.Sqrt(vector.X);
+            float y = Calc.Sqrt(vector.Y);
+            float z = Calc.Sqrt(vector.Z);
             return new Vector3(x, y, z);
-        }
-
-        public static Vector3 RotateX(this Vector3 vector, float angles)
-        {
-            float rad = (float)(Math.PI / 180) * angles;
-            float sin = (float)Math.Sin(rad);
-            float cos = (float)Math.Cos(rad);
-            Matrix4 matrix = new Matrix4(
-                new Vector4(1, 0, 0, 0),
-                new Vector4(0, cos, -sin, 0),
-                new Vector4(0, sin, cos, 0),
-                new Vector4(0, 0, 0, 1)
-            );
-            return Vector3.Transform(vector, matrix);
-        }
-
-        public static Vector3 RotateY(this Vector3 vector, float angles)
-        {
-            float rad = (float)(Math.PI / 180) * angles;
-            float sin = (float)Math.Sin(rad);
-            float cos = (float)Math.Cos(rad);
-            Matrix4 matrix = new Matrix4(
-                new Vector4(cos, 0, sin, 0),
-                new Vector4(0, 1, 0, 0),
-                new Vector4(-sin, 0, cos, 0),
-                new Vector4(0, 0, 0, 1)
-            );
-            return Vector3.Transform(vector, matrix);
-        }
-
-        public static Vector3 RotateZ(this Vector3 vector, float angles)
-        {
-            float rad = (float)(Math.PI / 180) * angles;
-            float sin = (float)Math.Sin(rad);
-            float cos = (float)Math.Cos(rad);
-            Matrix4 matrix = new Matrix4(
-                new Vector4(cos, -sin, 0, 0),
-                new Vector4(sin, cos, 0, 0),
-                new Vector4(0, 0, 1, 0),
-                new Vector4(0, 0, 0, 1)
-            );
-            return Vector3.Transform(vector, matrix);
         }
 
     }
