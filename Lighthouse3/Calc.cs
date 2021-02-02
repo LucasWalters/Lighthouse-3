@@ -78,6 +78,24 @@ namespace Lighthouse3
             return a;
         }
 
+        public static float Max(float a, float b, float c)
+        {
+            if (a > b)
+            {
+                if (a > c)
+                    return a;
+                return c;
+            }
+            if (b > c)
+                return b;
+            return c;
+        }
+
+        public static int Floor(float value)
+        {
+            return (int)value;
+        }
+
         public static int MaxDimension(Vector3 vector)
         {
             return (vector.X > vector.Y) ? ((vector.X > vector.Z) ? 0 : 2) : ((vector.Y > vector.Z) ? 1 : 2);

@@ -218,7 +218,8 @@ namespace Lighthouse3.Scenes
                     gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
                     stratification: false,
-                    blueNoise: false
+                    blueNoise: false,
+                    adaptiveSampling: true
                 );
             scene.backgroundColor = Color.Black;
 

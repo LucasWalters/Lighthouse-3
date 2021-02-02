@@ -41,6 +41,8 @@ namespace Lighthouse3
 
         public bool antiAliasing;
 
+        public bool samplesView = false;
+
         public enum ProjectionType { Perspective, Orthographic, Distortion }
 
         //Top left corner of screen
@@ -51,13 +53,15 @@ namespace Lighthouse3
         Vector3 bottomLeft;
         public Vector3 screenCenter;
 
-        public Vector3[] pixelColors;
+        public Pixel[] pixels;
         public Vector3[] illumination;
+        public int[] adaptiveSamplingWeights;
         public Ray[] rays;
-        public int[] pixels;
+        public int[] pixelColors;
         public bool pixelsChanged = false;
         public int numberOfThreads;
         public int frames = 0;
+        public bool adaptiveSampleNextFrame = false;
         TracingThread[] threads;
         int threadsFinished = 0;
         bool rendering = false;
@@ -67,21 +71,26 @@ namespace Lighthouse3
         float aspectRatio;
         bool stratification;
         bool blueNoise;
+        bool adaptiveSampling;
         int strata = 0;
         float invStrata;
         float invRaysPerPixel;
+        float framesDivider;
+
+
 
         float widthPerPixel;
         float heightPerPixel;
         Stopwatch stopwatch;
 
         private readonly object syncLock = new object();
+        private readonly float adaptiveSamplingFactor = 1f;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
             bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float distortion = 0.2f,
-            float vignettingFactor = 0f, bool stratification = false, bool blueNoise = false)
+            float vignettingFactor = 0f, bool stratification = false, bool blueNoise = false, bool adaptiveSampling = false)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -100,6 +109,7 @@ namespace Lighthouse3
             this.vignettingFactor = vignettingFactor;
             this.stratification = stratification;
             this.blueNoise = blueNoise;
+            this.adaptiveSampling = adaptiveSampling;
 
             up = Vector3.Cross(direction, Vector3.UnitX).Normalized();
             if (Math.Abs(direction.X) == 1f)
@@ -115,14 +125,22 @@ namespace Lighthouse3
             if (numberOfThreads > 0)
                 threads = new TracingThread[numberOfThreads];
 
+            rays = new Ray[screenWidth * screenHeight * raysPerPixel];
+            for (int i = 0; i < screenWidth * screenHeight * raysPerPixel; i++)
+                rays[i] = new Ray();
 
-            pixels = new int[screenWidth * screenHeight];
+            pixelColors = new int[screenWidth * screenHeight];
             UpdateCamera();
         }
 
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
+            if (threads != null)
+                foreach (TracingThread thread in threads)
+                    if (thread != null)
+                        thread.abort = true;
+
             if (stratification)
             {
                 double sqrt = Math.Sqrt(raysPerPixel);
@@ -140,8 +158,10 @@ namespace Lighthouse3
                 invStrata = 0f;
             }
 
+            if (adaptiveSampling && !antiAliasing)
+                Console.WriteLine("Error! Adaptive Sampling set without Anti Aliasing!");
+
             invRaysPerPixel = 1f / raysPerPixel;
-            rays = new Ray[screenWidth * screenHeight * raysPerPixel];
 
             widthPerPixel = 1f / (screenWidth - 1);
             heightPerPixel = 1f / (screenHeight - 1);
@@ -165,6 +185,7 @@ namespace Lighthouse3
                 }
             }
             resetFrame = true;
+            rendering = false;
         }
 
         // Maps screen position to world position, u & v = [0, 1]
@@ -225,6 +246,7 @@ namespace Lighthouse3
             else
                 UpdateRay(x + y * screenWidth, GetPixelPos(x, y));
         }
+
         public void UpdateRandomizedPixelRays(int x, int y)
         {
             if (raysPerPixel > 1)
@@ -251,72 +273,222 @@ namespace Lighthouse3
             return 1 - Calc.Clamp((vignettingFactor * dist), 0, 1);
         }
 
-        public void Frame(Scene scene)
+        public int GetFinalColor(int x, int y, bool debug = false)
         {
-            float framesDivider = 1f / ++frames;
-            for (int x = 0; x < screenWidth; x++)
-            {
-                for (int y = 0; y < screenHeight; y++)
-                {
-                    CalculateRay(x, y, scene);
-                    pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] * framesDivider);
-                }
-            }
-            pixelsChanged = true;
-            rendering = false;
+            Pixel pixel = pixels[x + y * screenWidth];
+
+            Vector3 color = pixel.color;
+
+            if (adaptiveSampling)
+                color /= pixel.samples;
+            else
+                color *= framesDivider + (debug ? 1 : 0);
+
+            if (gammaCorrection)
+                color = color.Sqrt();
+
+            return Color.ToARGB(color * GetVignetteFactor(x, y));
         }
-        public void MultithreadedFrame(Scene scene)
+
+        public void RenderFrame(Scene scene)
         {
             if (rendering)
                 return;
             rendering = true;
+
             if (timeFrames)
                 stopwatch = Stopwatch.StartNew();
+
             if (resetFrame)
             {
-                pixelColors = new Vector3[screenWidth * screenHeight];
+                pixels = new Pixel[screenWidth * screenHeight];
+                adaptiveSampleNextFrame = false;
+
+                for (int x = 0; x < screenWidth; x++)
+                {
+                    for (int y = 0; y < screenHeight; y++)
+                    {
+                        pixels[x + y * screenWidth] = new Pixel
+                        {
+                            x = x,
+                            y = y
+                        };
+                    }
+                }
+
                 illumination = new Vector3[screenWidth * screenHeight];
                 frames = 0;
                 resetFrame = false;
             }
+
+            framesDivider = 1f / ++frames;
+
             if (numberOfThreads < 2)
             {
-                Frame(scene);
-                if (timeFrames)
-                {
-                    stopwatch.Stop();
-                    Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
-                }
-                return;
+                MainThreadFrame(scene);
+                FinishFrame();
             }
+            else
+            {
+                MultithreadedFrame(scene);
+            }
+        }
+
+        public void FinishFrame()
+        {
+            if (adaptiveSampling)
+            {
+                if (adaptiveSampleNextFrame)
+                    adaptiveSampleNextFrame = false;
+                else
+                    SetAdaptiveSamplingWeights();
+
+                if (samplesView)
+                {
+                    int max = int.MinValue;
+                    int min = int.MaxValue;
+                    for (int x = 0; x < screenWidth; x++)
+                    {
+                        for (int y = 0; y < screenHeight; y++)
+                        {
+                            Pixel pixel = pixels[x + y * screenWidth];
+                            if (pixel.samples < min)
+                                min = pixel.samples;
+                            if (pixel.samples > max)
+                                max = pixel.samples;
+                        }
+                    }
+
+                    if (min != max)
+                    {
+                        for (int x = 0; x < screenWidth; x++)
+                        {
+                            for (int y = 0; y < screenHeight; y++)
+                            {
+                                Pixel pixel = pixels[x + y * screenWidth];
+                                float ratio = 2f * (float) (pixel.samples - min) / (float) (max - min);
+                                float b = Calc.Max(0, (1f - ratio));
+                                float r = Calc.Max(0, (ratio - 1f));
+                                float g = 1f - b - r;
+                                pixelColors[x + y * screenWidth] = Color.ToARGB(new Vector3(r, g, b));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (timeFrames)
+            {
+                stopwatch.Stop();
+                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
+            }
+
+            pixelsChanged = true;
+            rendering = false;
+        }
+
+
+        public void SetAdaptiveSamplingWeights()
+        {
+            adaptiveSamplingWeights = new int[screenWidth * screenHeight];
+
+            for (int x = 0; x < screenWidth; x++)
+            {
+                for (int y = 0; y < screenHeight; y++)
+                {
+                    Vector3 max = Calc.Vector3MinValue();
+                    Vector3 min = Calc.Vector3MaxValue();
+
+                    for (int dx = x - 1; dx <= x + 1; dx++)
+                    {
+                        if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
+                            continue;
+
+                        for (int dy = y - 1; dy <= y + 1; dy++)
+                        {
+                            if ((y == 0 && dy == y - 1) || (y == screenHeight - 1 && dy == y + 1))
+                                continue;
+
+                            Pixel pixel = pixels[dx + dy * screenWidth];
+                            Vector3 color = pixel.color / pixel.samples;
+
+                            for (int xyz = 0; xyz < 3; xyz++)
+                            {
+                                if (color[xyz] > max[xyz])
+                                    max[xyz] = color[xyz];
+
+                                if (color[xyz] < min[xyz])
+                                    min[xyz] = color[xyz];
+                            }
+
+                        }
+                    }
+
+                    bool supersample = false;
+
+                    // From: https://dl-acm-org.proxy.library.uu.nl/doi/pdf/10.1145/37401.37410
+                    Vector3 thresholds = new Vector3(0.4f, 0.3f, 0.6f);
+
+                    for (int xyz = 0; xyz < 3; xyz++)
+                    {
+                        float c = (max[xyz] - min[xyz]) / (max[xyz] + min[xyz]);
+                        if (c > thresholds[xyz])
+                        {
+                            supersample = true;
+                            adaptiveSampleNextFrame = true;
+                            break;
+                        }
+                    }
+
+                    if (supersample)
+                    {
+                        for (int dx = x - 1; dx <= x + 1; dx++)
+                        {
+                            if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
+                                continue;
+
+                            for (int dy = y - 1; dy <= y + 1; dy++)
+                            {
+                                if ((y == 0 && dy == y - 1) || (y == screenHeight - 1 && dy == y + 1))
+                                    continue;
+
+                                adaptiveSamplingWeights[dx + dy * screenWidth]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void MainThreadFrame(Scene scene)
+        {
+            for (int x = 0; x < screenWidth; x++)
+            {
+                for (int y = 0; y < screenHeight; y++)
+                {
+                    if (adaptiveSampleNextFrame)
+                        AdaptiveSampling(x, y, scene);
+                    else
+                        CalculateRay(x, y, scene);
+
+                    pixelColors[x + y * screenWidth] = GetFinalColor(x, y);
+                }
+            }
+        }
+
+        public void MultithreadedFrame(Scene scene)
+        {
             threadsFinished = 0;
 
-            float framesDivider = 1f / ++frames;
-            int perThread = (int)Math.Floor((float)screenWidth / (float)numberOfThreads);
             for (int t = 0; t < numberOfThreads; t++)
             {
                 threads[t] = new TracingThread(t, this, scene, (threadIndex) =>
                 {
-                    for (int x = threadIndex; x < screenWidth; x += numberOfThreads)
-                    {
-                        for (int y = 0; y < screenHeight; y++)
-                        {
-                            int index = x + y * screenWidth;
-                            pixels[index] = ColorToPixel(pixelColors[index] * framesDivider);
-                        }
-                    }
                     lock (syncLock)
                     {
                         if (++threadsFinished == numberOfThreads)
                         {
-                            pixelsChanged = true;
-                            rendering = false;
-
-                            if (timeFrames)
-                            {
-                                stopwatch.Stop();
-                                Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
-                            }
+                            FinishFrame();
                         }
                     }
                 });
@@ -325,29 +497,48 @@ namespace Lighthouse3
             }
         }
 
+        public void AdaptiveSampling(int x, int y, Scene scene)
+        {
+            int extraRays = Calc.Floor(adaptiveSamplingWeights[x + y * screenWidth] * adaptiveSamplingFactor);
+            if (extraRays <= 0)
+            {
+                return;
+
+            }
+
+            for (int i = 0; i < extraRays; i++)
+                CalculateRay(x, y, scene);
+        }
+
         public void CalculateRay(int x, int y, Scene scene, bool debug = false)
         {
             int index = x + y * screenWidth;
-            float vignette = GetVignetteFactor(x, y);
+
             if (antiAliasing)
             {
                 UpdateRandomizedPixelRays(x, y);
             }
+
             if (raysPerPixel > 1)
             {
-                Vector3 combinedColour = Vector3.Zero;
+                Vector3 combinedColor = Vector3.Zero;
                 for (int i = 0; i < raysPerPixel; i++)
                 {
-                    combinedColour += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug);
+                    combinedColor += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug);
                 }
-                pixelColors[index] += combinedColour * invRaysPerPixel * vignette;
+                if (!adaptiveSampling)
+                    combinedColor *= invRaysPerPixel;
+                else
+                    pixels[index].samples += raysPerPixel;
+
+                pixels[index].color += combinedColor;
             }
             else
             {
-                pixelColors[index] += TraceRay(rays[index], scene, debug) * vignette;
+                pixels[index].color += TraceRay(rays[index], scene, debug);
+                if (adaptiveSampling)
+                    pixels[index].samples++;
             }
-
-
         }
 
         public void DebugRay(Scene scene, int x, int y)
@@ -355,7 +546,7 @@ namespace Lighthouse3
             if (x <= 0 || y <= 0)
                 return;
             CalculateRay(x, y, scene, true);
-            pixels[x + y * screenWidth] = ColorToPixel(pixelColors[x + y * screenWidth] / (frames + 1f));
+            pixelColors[x + y * screenWidth] = GetFinalColor(x, y, debug: true);
             pixelsChanged = true;
         }
 
@@ -370,12 +561,6 @@ namespace Lighthouse3
             return Color.Black;
         }
 
-        private int ColorToPixel(Vector3 color)
-        {
-            if (gammaCorrection)
-                color = color.Sqrt();
-            return Color.ToARGB(color);
-        }
 
         public void RotateX(float angle)
         {
@@ -464,7 +649,11 @@ namespace Lighthouse3
                 {
                     if (abort)
                         return;
-                    camera.CalculateRay(x, y, scene);
+                    if (camera.adaptiveSampleNextFrame)
+                        camera.AdaptiveSampling(x, y, scene);
+                    else
+                        camera.CalculateRay(x, y, scene);
+                    camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
                 }
             }
 

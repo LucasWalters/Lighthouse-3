@@ -12,7 +12,7 @@ namespace Lighthouse3.RayTracers
 {
     public static class PathTracer
     {
-        public const int MaxDepth = 100;
+        public const int MaxDepth = 10000;
         public static bool MIS = true;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
@@ -63,18 +63,27 @@ namespace Lighthouse3.RayTracers
 
                 Vector3 normal = intersection.hit.Normal(intersection);
 
-                if (++depth >= MaxDepth)
-                {
-                    if (debug)
-                        Console.WriteLine("Max reached!");
-                    break;
-                }
+                //if (++depth >= MaxDepth)
+                //{
+                //    if (debug)
+                //        Console.WriteLine("Max reached!");
+                //    break;
+                //}
 
                 bool backface = false;
                 if (Vector3.Dot(ray.direction, normal) > 0)
                 {
                     normal = -normal;
                     backface = true;
+                }
+
+                bool killed = false;
+
+                // Russian Roulette
+                float survivalChance = Calc.Clamp(Calc.Max(material.color.X, material.color.Y, material.color.Z), Calc.Epsilon, 0.9f);
+                if (Calc.Random() > survivalChance)
+                {
+                    killed = true;
                 }
 
                 float materialTypeRandom = Calc.Random();
@@ -131,9 +140,7 @@ namespace Lighthouse3.RayTracers
                         }
                     }
 
-                    // Russian Roulette
-                    float survivalChance = Calc.Clamp(Calc.Max(material.color.X, Calc.Max(material.color.Y, material.color.Z)));
-                    if (Calc.Random() > survivalChance)
+                    if (killed)
                         break;
 
                     ray = ray.RandomReflect(intersection.distance, normal);
@@ -145,6 +152,9 @@ namespace Lighthouse3.RayTracers
                 //Handle specularity
                 else if (materialTypeRandom < material.specularity + material.diffuse)
                 {
+                    if (killed)
+                        break;
+
                     ray = ray.GlossyReflect(intersection.distance, normal, material.glossiness);
                     totalColor *= material.color;
                     sampleLight = true;
@@ -153,6 +163,9 @@ namespace Lighthouse3.RayTracers
                 //Handle transparancy
                 else
                 {
+                    if (killed)
+                        break;
+
                     // Refract the ray to either go into the material or come out of the material
                     Ray refraction;
                     float reflectionChance;
@@ -185,14 +198,6 @@ namespace Lighthouse3.RayTracers
 
             }
             return totalEnergy;
-
-            
-
-            
-
-            
-
-            
         }
     }
 }

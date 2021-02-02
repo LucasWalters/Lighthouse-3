@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Lighthouse3
 {
-    public struct Ray
+    public class Ray
     {
         public Vector3 origin;
         public Vector3 direction;
@@ -28,6 +28,11 @@ namespace Lighthouse3
             invDir.X = 1f / direction.X;
             invDir.Y = 1f / direction.Y;
             invDir.Z = 1f / direction.Z;
+        }
+
+        public Ray()
+        {
+            this.distance = float.MaxValue;
         }
 
         public void SetDirection(Vector3 direction)
