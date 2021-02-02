@@ -31,5 +31,10 @@ namespace Lighthouse3
             float r = ((color >> 16) & 255) * inv256;
             return new Vector3(r, g, b);
         }
+
+        public static float Luminance(Vector3 color)
+        {
+            return 0.299f * color.X + 0.587f * color.Y + 0.114f * color.Z;
+        }
     }
 }

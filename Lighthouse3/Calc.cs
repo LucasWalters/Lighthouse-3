@@ -31,7 +31,7 @@ namespace Lighthouse3
         {
             return (at - min) / (max - min);
         }
-        
+
         public static float Lerp(float min, float max, float t)
         {
             return min + (max - min) * t;
@@ -230,6 +230,40 @@ namespace Lighthouse3
             pdfB *= pdfB;
             return pdfA / (pdfA + pdfB);
         }
+
+        public static float KLDistance(float[] p, float[] q)
+        {
+            float sum = 0;
+            for (int i = 0; i < p.Length; i++)
+            {
+                if (p[i] == 0f)
+                    continue;
+                sum += p[i] * (float)Math.Log(p[i] / q[i]);
+            }
+            return sum;
+        }
+
+        public static float Chi2Distance(float[] p, float[] q)
+        {
+            float sum = 0;
+            for (int i = 0; i < p.Length; i++)
+            {
+                float diff = p[i] - q[i];
+                sum += diff * diff / q[i];
+            }
+            return sum;
+        }
+
+        public static float HellingerDistance(float[] p, float[] q)
+        {
+            float sum = 0;
+            for (int i = 0; i < p.Length; i++)
+            {
+                float sqrDiff = Sqrt(p[i]) - Sqrt(q[i]);
+                sum += sqrDiff * sqrDiff;
+            }
+            return 0.5f * sum;
+        }
     }
 
     public static class Extensions
@@ -272,6 +306,14 @@ namespace Lighthouse3
             float y = Calc.Sqrt(vector.Y);
             float z = Calc.Sqrt(vector.Z);
             return new Vector3(x, y, z);
+        }
+
+        public static Vector3 Divide(this Vector3 vector, Vector3 other)
+        {
+            vector.X /= other.X;
+            vector.Y /= other.Y;
+            vector.Z /= other.Z;
+            return vector;
         }
 
     }

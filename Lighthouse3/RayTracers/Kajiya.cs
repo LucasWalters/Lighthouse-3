@@ -32,12 +32,12 @@ namespace Lighthouse3.RayTracers
 
             Vector3 normal = intersection.hit.Normal(intersection);
 
-            if (depth > MaxDepth)
-            {
-                if (debug)
-                    Console.WriteLine("Max reached!");
-                return Color.Black;
-            }
+            //if (depth > MaxDepth)
+            //{
+            //    if (debug)
+            //        Console.WriteLine("Max reached!");
+            //    return Color.Black;
+            //}
 
             Vector3 color;
 
@@ -62,6 +62,13 @@ namespace Lighthouse3.RayTracers
             }
 
             float materialTypeRandom = Calc.Random();
+
+            // Russian Roulette
+            float survivalChance = Calc.Clamp(Calc.Max(material.color.X, material.color.Y, material.color.Z), Calc.Epsilon, 0.9f);
+            if (Calc.Random() > survivalChance)
+            {
+                return Color.Black;
+            }
 
             //Handle diffuse color
             if (materialTypeRandom < material.diffuse)
@@ -123,7 +130,7 @@ namespace Lighthouse3.RayTracers
                 color *= (isEven ? 1 : 0.5f);
             }
 
-            return material.color * color;
+            return (1f / survivalChance) * material.color * color;
         }
     }
 }

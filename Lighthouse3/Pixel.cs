@@ -13,7 +13,7 @@ namespace Lighthouse3
         public Vector3 color;
         public int samples;
 
-        public Vector3 lastIllumination;
-        public Vector3 lastAlbedo;
+        //public Vector3 lastIllumination;
+        //public Vector3 lastAlbedo;
     }
 }

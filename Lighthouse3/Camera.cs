@@ -15,6 +15,7 @@ namespace Lighthouse3
     public class Camera
     {
         public static bool timeFrames = true;
+        public static int maxFrames = 0;
 
         //World position of the camera
         public Vector3 position;
@@ -45,6 +46,8 @@ namespace Lighthouse3
 
         public enum ProjectionType { Perspective, Orthographic, Distortion }
 
+        public enum AdaptiveSamplingMethod { None, Contrast, SqrtKullbackLeibler, SqrtChiSquare, SqrtHellinger }
+
         //Top left corner of screen
         Vector3 topLeft;
         //Top right corner of screen
@@ -61,7 +64,7 @@ namespace Lighthouse3
         public bool pixelsChanged = false;
         public int numberOfThreads;
         public int frames = 0;
-        public bool adaptiveSampleNextFrame = false;
+        public AdaptiveSamplingMethod adaptiveSampling;
         TracingThread[] threads;
         int threadsFinished = 0;
         bool rendering = false;
@@ -71,11 +74,12 @@ namespace Lighthouse3
         float aspectRatio;
         bool stratification;
         bool blueNoise;
-        bool adaptiveSampling;
         int strata = 0;
         float invStrata;
         float invRaysPerPixel;
         float framesDivider;
+
+        bool lastSamplesView = false;
 
 
 
@@ -84,13 +88,13 @@ namespace Lighthouse3
         Stopwatch stopwatch;
 
         private readonly object syncLock = new object();
-        private readonly float adaptiveSamplingFactor = 1f;
+        private readonly float adaptiveSamplingFactor = 2f;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
             bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float distortion = 0.2f,
-            float vignettingFactor = 0f, bool stratification = false, bool blueNoise = false, bool adaptiveSampling = false)
+            float vignettingFactor = 0f, bool stratification = false, bool blueNoise = false, AdaptiveSamplingMethod adaptiveSampling = AdaptiveSamplingMethod.None)
         {
             this.position = position;
             if (direction.LengthSquared != 0)
@@ -158,7 +162,7 @@ namespace Lighthouse3
                 invStrata = 0f;
             }
 
-            if (adaptiveSampling && !antiAliasing)
+            if (adaptiveSampling != AdaptiveSamplingMethod.None && !antiAliasing)
                 Console.WriteLine("Error! Adaptive Sampling set without Anti Aliasing!");
 
             invRaysPerPixel = 1f / raysPerPixel;
@@ -279,7 +283,7 @@ namespace Lighthouse3
 
             Vector3 color = pixel.color;
 
-            if (adaptiveSampling)
+            if (adaptiveSampling != AdaptiveSamplingMethod.None)
                 color /= pixel.samples;
             else
                 color *= framesDivider + (debug ? 1 : 0);
@@ -290,10 +294,39 @@ namespace Lighthouse3
             return Color.ToARGB(color * GetVignetteFactor(x, y));
         }
 
+        public bool MaxFramesReached()
+        {
+            if (maxFrames > 0 && frames >= maxFrames)
+            {
+                if (samplesView != lastSamplesView)
+                {
+                    lastSamplesView = samplesView;
+                    if (samplesView)
+                        ShowPixelSampleDepth();
+                    else
+                    {
+                        for (int x = 0; x < screenWidth; x++)
+                        {
+                            for (int y = 0; y < screenHeight; y++)
+                            {
+                                pixelColors[x + y * screenWidth] = GetFinalColor(x, y);
+                            }
+                        }
+                    }
+                    pixelsChanged = true;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public void RenderFrame(Scene scene)
         {
             if (rendering)
                 return;
+            if (MaxFramesReached())
+                return;
+
             rendering = true;
 
             if (timeFrames)
@@ -302,7 +335,6 @@ namespace Lighthouse3
             if (resetFrame)
             {
                 pixels = new Pixel[screenWidth * screenHeight];
-                adaptiveSampleNextFrame = false;
 
                 for (int x = 0; x < screenWidth; x++)
                 {
@@ -334,47 +366,47 @@ namespace Lighthouse3
             }
         }
 
-        public void FinishFrame()
+        public void ShowPixelSampleDepth()
         {
-            if (adaptiveSampling)
+            int max = int.MinValue;
+            int min = int.MaxValue;
+            for (int x = 0; x < screenWidth; x++)
             {
-                if (adaptiveSampleNextFrame)
-                    adaptiveSampleNextFrame = false;
-                else
-                    SetAdaptiveSamplingWeights();
-
-                if (samplesView)
+                for (int y = 0; y < screenHeight; y++)
                 {
-                    int max = int.MinValue;
-                    int min = int.MaxValue;
-                    for (int x = 0; x < screenWidth; x++)
-                    {
-                        for (int y = 0; y < screenHeight; y++)
-                        {
-                            Pixel pixel = pixels[x + y * screenWidth];
-                            if (pixel.samples < min)
-                                min = pixel.samples;
-                            if (pixel.samples > max)
-                                max = pixel.samples;
-                        }
-                    }
+                    Pixel pixel = pixels[x + y * screenWidth];
+                    if (pixel.samples < min)
+                        min = pixel.samples;
+                    if (pixel.samples > max)
+                        max = pixel.samples;
+                }
+            }
 
-                    if (min != max)
+            if (min != max)
+            {
+                for (int x = 0; x < screenWidth; x++)
+                {
+                    for (int y = 0; y < screenHeight; y++)
                     {
-                        for (int x = 0; x < screenWidth; x++)
-                        {
-                            for (int y = 0; y < screenHeight; y++)
-                            {
-                                Pixel pixel = pixels[x + y * screenWidth];
-                                float ratio = 2f * (float) (pixel.samples - min) / (float) (max - min);
-                                float b = Calc.Max(0, (1f - ratio));
-                                float r = Calc.Max(0, (ratio - 1f));
-                                float g = 1f - b - r;
-                                pixelColors[x + y * screenWidth] = Color.ToARGB(new Vector3(r, g, b));
-                            }
-                        }
+                        Pixel pixel = pixels[x + y * screenWidth];
+                        float ratio = 2f * (float)(pixel.samples - min) / (float)(max - min);
+                        float b = Calc.Max(0, (1f - ratio));
+                        float r = Calc.Max(0, (ratio - 1f));
+                        float g = 1f - b - r;
+                        pixelColors[x + y * screenWidth] = Color.ToARGB(new Vector3(r, g, b));
                     }
                 }
+            }
+        }
+
+        public void FinishFrame()
+        {
+            if (adaptiveSampling != AdaptiveSamplingMethod.None)
+            {
+                SetAdaptiveSamplingWeights();
+
+                if (samplesView)
+                    ShowPixelSampleDepth();
             }
 
             if (timeFrames)
@@ -387,6 +419,128 @@ namespace Lighthouse3
             rendering = false;
         }
 
+        public bool ShouldSuperSampleFDivergence(int x, int y)
+        {
+            float totalL = 0f;
+            int totalSamples = 0;
+
+            for (int dx = x - 1; dx <= x + 1; dx++)
+            {
+                if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
+                    continue;
+
+                for (int dy = y - 1; dy <= y + 1; dy++)
+                {
+                    if ((y == 0 && dy == y - 1) || (y == screenHeight - 1 && dy == y + 1))
+                        continue;
+
+                    Pixel pixel = pixels[dx + dy * screenWidth];
+                    Vector3 color = pixel.color / (float)pixel.samples;
+
+                    totalL += Color.Luminance(color);
+                    totalSamples++;
+                }
+            }
+
+            if (totalL < Calc.Epsilon)
+                return false;
+
+            //From https://www.researchgate.net/publication/220853064_Refinement_Criteria_Based_on_f-Divergences
+
+            float averageL = totalL / (float)totalSamples;
+            float[] p = new float[totalSamples];
+            float[] q = new float[totalSamples];
+            int index = 0;
+            float qVal = 1f / (float)totalSamples;
+
+
+            for (int dx = x - 1; dx <= x + 1; dx++)
+            {
+                if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
+                    continue;
+
+                for (int dy = y - 1; dy <= y + 1; dy++)
+                {
+                    if ((y == 0 && dy == y - 1) || (y == screenHeight - 1 && dy == y + 1))
+                        continue;
+
+                    Pixel pixel = pixels[dx + dy * screenWidth];
+                    Vector3 color = pixel.color / pixel.samples;
+
+                    p[index] = Color.Luminance(color) / totalL;
+                    q[index] = qVal;
+
+                    index++;
+                }
+            }
+
+            float distance = 0;
+
+            switch (adaptiveSampling)
+            {
+                case AdaptiveSamplingMethod.SqrtKullbackLeibler:
+                    distance = Calc.KLDistance(p, q);
+                    break;
+                case AdaptiveSamplingMethod.SqrtChiSquare:
+                    distance = Calc.Chi2Distance(p, q);
+                    break;
+                case AdaptiveSamplingMethod.SqrtHellinger:
+                    distance = Calc.HellingerDistance(p, q);
+                    break;
+                default:
+                    Console.WriteLine("Error! Adaptive sampling method not recognised!");
+                    break;
+            }
+
+            float result = qVal * averageL * Calc.Sqrt(distance);
+
+            return result > 0.005f;
+        }
+
+        public bool ShouldSuperSampleContrast(int x, int y)
+        {
+            Vector3 max = Calc.Vector3MinValue();
+            Vector3 min = Calc.Vector3MaxValue();
+
+            for (int dx = x - 1; dx <= x + 1; dx++)
+            {
+                if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
+                    continue;
+
+                for (int dy = y - 1; dy <= y + 1; dy++)
+                {
+                    if ((y == 0 && dy == y - 1) || (y == screenHeight - 1 && dy == y + 1))
+                        continue;
+
+                    Pixel pixel = pixels[dx + dy * screenWidth];
+                    Vector3 color = pixel.color / pixel.samples;
+
+                    for (int xyz = 0; xyz < 3; xyz++)
+                    {
+                        if (color[xyz] > max[xyz])
+                            max[xyz] = color[xyz];
+
+                        if (color[xyz] < min[xyz])
+                            min[xyz] = color[xyz];
+                    }
+
+                }
+            }
+
+            // From: https://dl-acm-org.proxy.library.uu.nl/doi/pdf/10.1145/37401.37410
+            Vector3 thresholds = new Vector3(0.4f, 0.3f, 0.6f);
+
+            for (int xyz = 0; xyz < 3; xyz++)
+            {
+                float c = (max[xyz] - min[xyz]) / (max[xyz] + min[xyz]);
+                if (c > thresholds[xyz])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 
         public void SetAdaptiveSamplingWeights()
         {
@@ -396,49 +550,11 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    Vector3 max = Calc.Vector3MinValue();
-                    Vector3 min = Calc.Vector3MaxValue();
-
-                    for (int dx = x - 1; dx <= x + 1; dx++)
-                    {
-                        if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
-                            continue;
-
-                        for (int dy = y - 1; dy <= y + 1; dy++)
-                        {
-                            if ((y == 0 && dy == y - 1) || (y == screenHeight - 1 && dy == y + 1))
-                                continue;
-
-                            Pixel pixel = pixels[dx + dy * screenWidth];
-                            Vector3 color = pixel.color / pixel.samples;
-
-                            for (int xyz = 0; xyz < 3; xyz++)
-                            {
-                                if (color[xyz] > max[xyz])
-                                    max[xyz] = color[xyz];
-
-                                if (color[xyz] < min[xyz])
-                                    min[xyz] = color[xyz];
-                            }
-
-                        }
-                    }
-
-                    bool supersample = false;
-
-                    // From: https://dl-acm-org.proxy.library.uu.nl/doi/pdf/10.1145/37401.37410
-                    Vector3 thresholds = new Vector3(0.4f, 0.3f, 0.6f);
-
-                    for (int xyz = 0; xyz < 3; xyz++)
-                    {
-                        float c = (max[xyz] - min[xyz]) / (max[xyz] + min[xyz]);
-                        if (c > thresholds[xyz])
-                        {
-                            supersample = true;
-                            adaptiveSampleNextFrame = true;
-                            break;
-                        }
-                    }
+                    bool supersample;
+                    if (adaptiveSampling == AdaptiveSamplingMethod.Contrast)
+                        supersample = ShouldSuperSampleContrast(x, y);
+                    else
+                        supersample = ShouldSuperSampleFDivergence(x, y);
 
                     if (supersample)
                     {
@@ -466,10 +582,9 @@ namespace Lighthouse3
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    if (adaptiveSampleNextFrame)
+                    CalculateRay(x, y, scene);
+                    if (adaptiveSampling != AdaptiveSamplingMethod.None)
                         AdaptiveSampling(x, y, scene);
-                    else
-                        CalculateRay(x, y, scene);
 
                     pixelColors[x + y * screenWidth] = GetFinalColor(x, y);
                 }
@@ -499,6 +614,9 @@ namespace Lighthouse3
 
         public void AdaptiveSampling(int x, int y, Scene scene)
         {
+            if (adaptiveSamplingWeights == null)
+                return;
+
             int extraRays = Calc.Floor(adaptiveSamplingWeights[x + y * screenWidth] * adaptiveSamplingFactor);
             if (extraRays <= 0)
             {
@@ -526,17 +644,17 @@ namespace Lighthouse3
                 {
                     combinedColor += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug);
                 }
-                if (!adaptiveSampling)
-                    combinedColor *= invRaysPerPixel;
-                else
+                if (adaptiveSampling != AdaptiveSamplingMethod.None)
                     pixels[index].samples += raysPerPixel;
+                else
+                    combinedColor *= invRaysPerPixel;
 
                 pixels[index].color += combinedColor;
             }
             else
             {
                 pixels[index].color += TraceRay(rays[index], scene, debug);
-                if (adaptiveSampling)
+                if (adaptiveSampling != AdaptiveSamplingMethod.None)
                     pixels[index].samples++;
             }
         }
@@ -649,10 +767,11 @@ namespace Lighthouse3
                 {
                     if (abort)
                         return;
-                    if (camera.adaptiveSampleNextFrame)
+
+                    camera.CalculateRay(x, y, scene);
+                    if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
                         camera.AdaptiveSampling(x, y, scene);
-                    else
-                        camera.CalculateRay(x, y, scene);
+
                     camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
                 }
             }

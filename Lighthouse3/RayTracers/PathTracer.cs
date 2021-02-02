@@ -20,10 +20,9 @@ namespace Lighthouse3.RayTracers
             Vector3 totalColor = Color.White;
             Vector3 totalEnergy = Color.Black;
             bool sampleLight = true;
-            int depth = 0;
             float currentRefractiveIndex = Material.RefractiveIndex.Vacuum;
             float lastRefractiveIndex = Material.RefractiveIndex.Vacuum;
-            float cos_i = 0;
+            Vector3 lastNormal = scene.mainCamera.direction;
             while (true)
             {
                 Intersection intersection = ray.NearestIntersection(scene, debug);
@@ -49,13 +48,15 @@ namespace Lighthouse3.RayTracers
 
                         Rectangle rect = (Rectangle)intersection.hit;
                         float cos_o = Vector3.Dot(-ray.direction, rect.normal);
+                        float cos_i = Vector3.Dot(ray.direction, lastNormal);
+
                         float solidAngle = (cos_o * rect.area) / (intersection.distance * intersection.distance);
                         float lightPDF = 1f / solidAngle;
                         float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
                         float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(brdfPDF, lightPDF);
+                        
                         c *= cos_i / misPDF;
                     }
-
                     totalEnergy += c;
                     break;
                 }
@@ -63,19 +64,13 @@ namespace Lighthouse3.RayTracers
 
                 Vector3 normal = intersection.hit.Normal(intersection);
 
-                //if (++depth >= MaxDepth)
-                //{
-                //    if (debug)
-                //        Console.WriteLine("Max reached!");
-                //    break;
-                //}
-
                 bool backface = false;
                 if (Vector3.Dot(ray.direction, normal) > 0)
                 {
                     normal = -normal;
                     backface = true;
                 }
+                lastNormal = normal;
 
                 bool killed = false;
 
@@ -104,7 +99,7 @@ namespace Lighthouse3.RayTracers
                     float dist = toLight.Length;
                     toLight /= dist;
                     float cos_o = Vector3.Dot(-toLight, light.rect.normal);
-                    cos_i = Vector3.Dot(toLight, normal);
+                    float cos_i = Vector3.Dot(toLight, normal);
                     if (cos_o > 0 && cos_i > 0)
                     {
                         // light is not behind surface point, trace shadow ray
@@ -139,15 +134,15 @@ namespace Lighthouse3.RayTracers
                             totalEnergy += c;
                         }
                     }
-
                     if (killed)
                         break;
 
                     ray = ray.RandomReflect(intersection.distance, normal);
+
                     float nDotR = Vector3.Dot(normal, ray.direction);
                     float PDF = Calc.Inv2Pi; //nDotR * Calc.InvPi;   Currently not using cosine random reflections
                     sampleLight = false;
-                    totalColor *= (1f / survivalChance) * BRDF * nDotR / PDF;
+                    totalColor *= (1f / survivalChance) * BRDF * (nDotR / PDF);
                 }
                 //Handle specularity
                 else if (materialTypeRandom < material.specularity + material.diffuse)
@@ -156,7 +151,7 @@ namespace Lighthouse3.RayTracers
                         break;
 
                     ray = ray.GlossyReflect(intersection.distance, normal, material.glossiness);
-                    totalColor *= material.color;
+                    totalColor *= (1f / survivalChance) * material.color;
                     sampleLight = true;
                 }
 
@@ -185,15 +180,16 @@ namespace Lighthouse3.RayTracers
                     if (refract)
                     {
                         ray = refraction;
-                        lastRefractiveIndex = currentRefractiveIndex;
+                        float temp = currentRefractiveIndex;
                         currentRefractiveIndex = backface ? lastRefractiveIndex : material.refractiveIndex;
+                        lastRefractiveIndex = temp;
                     }
                     else
                     {
                         ray = ray.Reflect(intersection.distance, normal);
                     }
-                    totalColor *= material.color;
                     sampleLight = true;
+                    totalColor *= (1f / survivalChance) * material.color;
                 }
 
             }

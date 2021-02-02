@@ -19,7 +19,7 @@ namespace Lighthouse3 {
         public const float moveSpeed = 1f;
         public const float rotateSpeed = 25f;
 
-        public static bool controls = true;
+        public static bool controls = false;
 
         public Surface screen;
         //Sprite small;
@@ -57,13 +57,13 @@ namespace Lighthouse3 {
 
 		public void Render(FrameEventArgs e)
         {
-            camera.RenderFrame(scene);
-
             if (camera.pixelsChanged)
             {
                 screen.SetPixels(camera.pixelColors);
                 camera.pixelsChanged = false;
             }
+            camera.RenderFrame(scene);
+
             if (!showStats)
                 return;
 
@@ -109,11 +109,11 @@ namespace Lighthouse3 {
                 if (keyboard[Key.E]) { camera.MoveY(-speed * deltaTime); keyPressed = true; }
                 if (keyboard[Key.F]) { camera.screenDistance = Calc.Clamp(camera.screenDistance - 0.5f * deltaTime, 0.25f, 10); keyPressed = true; }
                 if (keyboard[Key.G]) { camera.screenDistance = Calc.Clamp(camera.screenDistance + 0.5f * deltaTime, 0.25f, 10); keyPressed = true; }
-                if (keyboard[Key.O]) { camera.samplesView = true; }
-                if (keyboard[Key.P]) { camera.samplesView = false; }
             }
             if (keyboard[Key.H]) { showStats = false; }
             if (keyboard[Key.J]) { showStats = true; }
+            if (keyboard[Key.O]) { camera.samplesView = true; }
+            if (keyboard[Key.P]) { camera.samplesView = false; }
             return keyPressed;
         }
     }

@@ -11,7 +11,7 @@ List of features:
 - 4-way BVH by collapsing the 2-way BVH (but with reduced performance)
 - BVH generation of 1 million triangles in 8s
 - Next event estimation for the path tracer
-- Multi importance sampling for (in)direct illumination
+- Multiple importance sampling for (in)direct illumination
 - Cosine weighted diffuse random reflections
 - Russian roulette for path tracer rays
 
