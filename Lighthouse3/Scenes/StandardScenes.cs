@@ -211,7 +211,7 @@ namespace Lighthouse3.Scenes
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
                     projection: Camera.ProjectionType.Perspective,
                     screenDistance: 3f,
-                    raysPerPixel: 4,
+                    raysPerPixel: 1,
                     rayTracer: RayTracers.RayTracer.PathTracer,
                     antiAliasing: true,
                     vignettingFactor: 0f,
@@ -219,7 +219,7 @@ namespace Lighthouse3.Scenes
                     distortion: 0f, // Only if projection is set to Distortion
                     stratification: false,
                     blueNoise: false,
-                    adaptiveSampling: Camera.AdaptiveSamplingMethod.Contrast
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
                 );
             scene.backgroundColor = Color.Black;
 

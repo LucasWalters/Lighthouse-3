@@ -23,7 +23,7 @@ namespace Lighthouse3
 			//Fix screen too big
 			Game.SCREEN_WIDTH = Width;
 			Game.SCREEN_HEIGHT = Height;
-			game = new Game();
+			game = new Game(this);
 			game.screen = new Surface( Width, Height );
 			Sprite.target = game.screen;
 			screenID = game.screen.GenTexture();

@@ -19,7 +19,7 @@ namespace Lighthouse3 {
         public const float moveSpeed = 1f;
         public const float rotateSpeed = 25f;
 
-        public static bool controls = false;
+        public static bool controls = true;
 
         public Surface screen;
         //Sprite small;
@@ -31,6 +31,14 @@ namespace Lighthouse3 {
         float timePassed = 0f;
 
         bool showStats = false;
+
+        GameWindow window;
+
+        public Game (GameWindow window)
+        {
+            this.window = window;
+        }
+
 		public void Init()
 		{
             //screen.Clear(0xcc33ff);
@@ -89,8 +97,12 @@ namespace Lighthouse3 {
         // Keybindings
         private bool HandleUserInput(float deltaTime)
         {
+            if (!window.Focused)
+                return false;
+
             bool keyPressed = false;
             var keyboard = Keyboard.GetState();
+            
             if (controls)
             {
                 float speed = moveSpeed;
