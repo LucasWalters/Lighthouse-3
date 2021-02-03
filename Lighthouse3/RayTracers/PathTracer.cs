@@ -12,7 +12,6 @@ namespace Lighthouse3.RayTracers
 {
     public static class PathTracer
     {
-        public const int MaxDepth = 10000;
         public static bool MIS = true;
 
         public static Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)

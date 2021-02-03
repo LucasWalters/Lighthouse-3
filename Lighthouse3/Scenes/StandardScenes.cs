@@ -219,7 +219,7 @@ namespace Lighthouse3.Scenes
                     distortion: 0f, // Only if projection is set to Distortion
                     stratification: false,
                     blueNoise: false,
-                    adaptiveSampling: Camera.AdaptiveSamplingMethod.SqrtHellinger
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.Contrast
                 );
             scene.backgroundColor = Color.Black;
 
