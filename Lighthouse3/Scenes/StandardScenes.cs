@@ -30,7 +30,9 @@ namespace Lighthouse3.Scenes
                     vignettingFactor: 2f,
                     gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
-                    stratification: true
+                    stratification: true,
+                    blueNoise: false,
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
                 );
             scene.backgroundColor = Color.Black;
 
@@ -63,7 +65,9 @@ namespace Lighthouse3.Scenes
                     vignettingFactor: 2f,
                     gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
-                    stratification: true
+                    stratification: true,
+                    blueNoise: false,
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
                 );
             scene.backgroundColor = Color.Black;
 
@@ -95,7 +99,9 @@ namespace Lighthouse3.Scenes
                     vignettingFactor: 2f,
                     gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
-                    stratification: true
+                    stratification: true,
+                    blueNoise: false,
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
                 );
             scene.backgroundColor = Color.Black;
 
@@ -127,7 +133,8 @@ namespace Lighthouse3.Scenes
                     gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
                     stratification: false,
-                    blueNoise: true
+                    blueNoise: true,
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
                 );
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
@@ -170,7 +177,9 @@ namespace Lighthouse3.Scenes
                      vignettingFactor: 2f,
                      gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
-                    stratification: true
+                    stratification: true,
+                    blueNoise: false,
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
                  );
             scene.backgroundColor = Color.Black;
             scene.lights = new Light[]
@@ -211,7 +220,7 @@ namespace Lighthouse3.Scenes
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
                     projection: Camera.ProjectionType.Perspective,
                     screenDistance: 3f,
-                    raysPerPixel: 1,
+                    raysPerPixel: 4,
                     rayTracer: RayTracers.RayTracer.PathTracer,
                     antiAliasing: true,
                     vignettingFactor: 0f,
@@ -219,7 +228,7 @@ namespace Lighthouse3.Scenes
                     distortion: 0f, // Only if projection is set to Distortion
                     stratification: false,
                     blueNoise: false,
-                    adaptiveSampling: Camera.AdaptiveSamplingMethod.None
+                    adaptiveSampling: Camera.AdaptiveSamplingMethod.SqrtHellinger
                 );
             scene.backgroundColor = Color.Black;
 

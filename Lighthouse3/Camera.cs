@@ -16,7 +16,7 @@ namespace Lighthouse3
     public class Camera
     {
         public static bool timeFrames = true;
-        public static int maxFrames = 30;
+        public static int maxFrames = 0;
 
         //World position of the camera
         public Vector3 position;
@@ -89,7 +89,7 @@ namespace Lighthouse3
         Stopwatch stopwatch;
 
         private readonly object syncLock = new object();
-        private readonly float adaptiveSamplingFactor = 2f;
+        private readonly float adaptiveSamplingFactor = 0.5f;
 
         private Camera() { }
         public Camera(Vector3 position, Vector3 direction, int width, int height,
@@ -420,11 +420,7 @@ namespace Lighthouse3
             rendering = false;
         }
 
-        List<float> yesValues = new List<float>();
-        List<float> noValues = new List<float>();
-        List<float> allValues = new List<float>();
-
-        public float ShouldSuperSampleFDivergence(int x, int y)
+        public bool ShouldSuperSampleFDivergence(int x, int y)
         {
             float totalL = 0f;
             int totalSamples = 0;
@@ -448,7 +444,7 @@ namespace Lighthouse3
             }
 
             if (totalL < Calc.Epsilon)
-                return 0f;
+                return false;
 
             //From https://www.researchgate.net/publication/220853064_Refinement_Criteria_Based_on_f-Divergences
 
@@ -479,26 +475,30 @@ namespace Lighthouse3
                 }
             }
 
-            float distance = Calc.KLDistance(p, q);
+            float distance = 0f;
+            float threshold = 0f;
 
             switch (adaptiveSampling)
             {
                 case AdaptiveSamplingMethod.SqrtKullbackLeibler:
                     distance = Calc.KLDistance(p, q);
+                    threshold = 0.005f;
                     break;
                 case AdaptiveSamplingMethod.SqrtChiSquare:
                     distance = Calc.Chi2Distance(p, q);
+                    threshold = 0.007f;
                     break;
                 case AdaptiveSamplingMethod.SqrtHellinger:
                     distance = Calc.HellingerDistance(p, q);
+                    threshold = 0.003f;
                     break;
                 default:
-                    //Console.WriteLine("Error! Adaptive sampling method not recognised!");
+                    Console.WriteLine("Error! Adaptive sampling method not recognised!");
                     break;
             }
 
             float result = qVal * averageL * Calc.Sqrt(distance);
-            return result;
+            return result > threshold;
         }
 
         public bool ShouldSuperSampleContrast(int x, int y)
@@ -555,16 +555,14 @@ namespace Lighthouse3
                 for (int y = 0; y < screenHeight; y++)
                 {
                     bool supersample;
-                    //if (adaptiveSampling == AdaptiveSamplingMethod.Contrast)
+                    if (adaptiveSampling == AdaptiveSamplingMethod.Contrast)
                         supersample = ShouldSuperSampleContrast(x, y);
-                    //else
-                    //    supersample = ShouldSuperSampleFDivergence(x, y);
+                    else
+                        supersample = ShouldSuperSampleFDivergence(x, y);
 
-                    allValues.Add(ShouldSuperSampleFDivergence(x, y));
 
                     if (supersample)
                     {
-                        yesValues.Add(ShouldSuperSampleFDivergence(x, y));
                         for (int dx = x - 1; dx <= x + 1; dx++)
                         {
                             if ((x == 0 && dx == x - 1) || (x == screenWidth - 1 && dx == x + 1))
@@ -579,61 +577,8 @@ namespace Lighthouse3
                             }
                         }
                     }
-                    else
-                    {
-                        noValues.Add(ShouldSuperSampleFDivergence(x, y));
-                    }
                 }
             }
-            float totalAll = 0;
-            float minAll = float.MaxValue;
-            float maxAll = float.MinValue;
-            for (int i = 0; i < allValues.Count; i++)
-            {
-                totalAll += allValues[i];
-                if (allValues[i] < minAll)
-                    minAll = allValues[i];
-                if (allValues[i] > maxAll)
-                    maxAll = allValues[i];
-            }
-
-            Console.WriteLine("All Average: " + totalAll / allValues.Count);
-            Console.WriteLine("All Min: " + minAll);
-            Console.WriteLine("All Max: " + maxAll);
-
-            float totalYes = 0;
-            float minYes = float.MaxValue;
-            float maxYes = float.MinValue;
-            for (int i = 0; i < yesValues.Count; i++)
-            {
-                totalYes += yesValues[i];
-                if (yesValues[i] < minYes)
-                    minYes = yesValues[i];
-                if (yesValues[i] > maxYes)
-                    maxYes = yesValues[i];
-            }
-
-            Console.WriteLine("Yes Average: " + totalYes / yesValues.Count);
-            Console.WriteLine("Yes Min: " + minYes);
-            Console.WriteLine("Yes Max: " + maxYes);
-
-            float totalNo = 0;
-            float minNo = float.MaxValue;
-            float maxNo = float.MinValue;
-            for (int i = 0; i < noValues.Count; i++)
-            {
-                totalNo += noValues[i];
-                if (noValues[i] < minNo)
-                    minNo = noValues[i];
-                if (noValues[i] > maxNo)
-                    maxNo = noValues[i];
-            }
-
-            Console.WriteLine("No Average: " + totalNo / noValues.Count);
-            Console.WriteLine("No Min: " + minNo);
-            Console.WriteLine("No Max: " + maxNo);
-
-
         }
 
         public void MainThreadFrame(Scene scene)
