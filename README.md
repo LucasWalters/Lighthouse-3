@@ -2,6 +2,8 @@
 
 Created by Lucas Walters (5037883) and Kwinten Jacobs (7006233)
 
+Note: There's also a report this time included in this folder
+
 =======
 List of features:
 - Adaptive Sampling based on 4 differen pixel error estimators: (These can be changed in the scene settings - StandardScenes.cs)

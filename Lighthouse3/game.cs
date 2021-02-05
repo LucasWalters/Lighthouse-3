@@ -14,12 +14,13 @@ namespace Lighthouse3 {
 
 	class Game
 	{
-		public static int SCREEN_WIDTH = 960;
-		public static int SCREEN_HEIGHT = 540;
+        public static int SCREEN_WIDTH = 480 + 960; //960;
+
+        public static int SCREEN_HEIGHT = 270 + 540; //540;
         public const float moveSpeed = 1f;
         public const float rotateSpeed = 25f;
 
-        public static bool controls = true;
+        public static bool controls = false;
 
         public Surface screen;
         //Sprite small;
