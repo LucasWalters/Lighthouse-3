@@ -26,7 +26,7 @@ namespace Lighthouse3.Scenes
                     screenDistance: 15f,
                     raysPerPixel: 1,
                     rayTracer: rayTracer,
-                    antiAliasing: false,
+                    antiAliasing: true,
                     vignettingFactor: 2f,
                     gammaCorrection: false,
                     distortion: 0f, // Only if projection is set to Distortion
