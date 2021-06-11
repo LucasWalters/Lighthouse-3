@@ -22,6 +22,7 @@ namespace Lighthouse3.RayTracers
             float currentRefractiveIndex = Material.RefractiveIndex.Vacuum;
             float lastRefractiveIndex = Material.RefractiveIndex.Vacuum;
             Vector3 lastNormal = scene.mainCamera.direction;
+            bool lastDiffuse = false;
             while (true)
             {
                 Intersection intersection = ray.NearestIntersection(scene, debug);
@@ -38,8 +39,7 @@ namespace Lighthouse3.RayTracers
                     if (debug)
                         Console.WriteLine("Light hit!");
 
-                    Vector3 c = totalColor * material.color * material.emissive;
-
+                    // If we shouldn't sample light check if we are using MIS and if so, do sample it but with both PDFs
                     if (!sampleLight)
                     {
                         if (!MIS)
@@ -53,10 +53,16 @@ namespace Lighthouse3.RayTracers
                         float lightPDF = 1f / solidAngle;
                         float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
                         float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(brdfPDF, lightPDF);
-                        
-                        c *= cos_i / misPDF;
+                        if (lastDiffuse)
+                            totalColor *= brdfPDF;
+
+                        totalEnergy += totalColor * material.color * material.emissive * cos_i / misPDF;
+                    } 
+                    else
+                    {
+                        totalEnergy += totalColor * material.color * material.emissive;
                     }
-                    totalEnergy += c;
+                    
                     break;
                 }
 
@@ -90,7 +96,6 @@ namespace Lighthouse3.RayTracers
                     int nrLights = scene.lights.Length;
                     AreaLight light = (AreaLight)scene.lights[nrLights > 1 ? Calc.RandomInt(0, nrLights) : 0];
 
-
                     // Direct Illumination
                     Vector3 intersectionPoint = ray.GetPoint(intersection.distance);
                     Vector3 randomPoint = light.RandomPointOnLight();
@@ -111,9 +116,10 @@ namespace Lighthouse3.RayTracers
                             float lightPDF = 1f / solidAngle;
                             float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
                             float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(lightPDF, brdfPDF);
-                            // Multiply result with the number of lights in the scene
 
-                            Vector3 c = totalColor * (cos_i / (MIS ?  misPDF : lightPDF)) * BRDF * light.color * nrLights * light.intensity;
+                            // Multiply result with the number of lights in the scene
+                            // If using MIS use both PDFs
+                            Vector3 illumination = totalColor * (cos_i / (MIS ?  misPDF : lightPDF)) * BRDF * light.color * nrLights * light.intensity;
                             //Render checkerboard pattern
                             if (material.checkerboard > 0)
                             {
@@ -128,16 +134,16 @@ namespace Lighthouse3.RayTracers
                                 if (point.Z < 0)
                                     z++;
                                 bool isEven = (x + y + z) % 2 == 0;
-                                c *= (isEven ? 1 : 0.5f);
+                                illumination *= (isEven ? 1 : 0.5f);
                             }
-                            totalEnergy += c;
+                            totalEnergy += illumination;
                         }
                     }
                     if (killed)
                         break;
 
                     ray = ray.RandomReflect(intersection.distance, normal);
-
+                    lastDiffuse = true;
                     float nDotR = Vector3.Dot(normal, ray.direction);
                     float PDF = Calc.Inv2Pi; //nDotR * Calc.InvPi;   Currently not using cosine random reflections
                     sampleLight = false;
@@ -152,6 +158,7 @@ namespace Lighthouse3.RayTracers
                     ray = ray.GlossyReflect(intersection.distance, normal, material.glossiness);
                     totalColor *= (1f / survivalChance) * material.color;
                     sampleLight = true;
+                    lastDiffuse = false;
                 }
 
                 //Handle transparancy
@@ -188,9 +195,9 @@ namespace Lighthouse3.RayTracers
                         ray = ray.Reflect(intersection.distance, normal);
                     }
                     sampleLight = true;
+                    lastDiffuse = false;
                     totalColor *= (1f / survivalChance) * material.color;
                 }
-
             }
             return totalEnergy;
         }

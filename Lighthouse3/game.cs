@@ -20,7 +20,7 @@ namespace Lighthouse3 {
         public const float moveSpeed = 1f;
         public const float rotateSpeed = 25f;
 
-        public static bool controls = false;
+        public static bool controls = true;
 
         public Surface screen;
         //Sprite small;
