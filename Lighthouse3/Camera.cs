@@ -10,6 +10,8 @@ using System.Threading;
 using Lighthouse3.Scenes;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
 
 namespace Lighthouse3
 {
@@ -67,6 +69,8 @@ namespace Lighthouse3
         public int frames = 0;
         public AdaptiveSamplingMethod adaptiveSampling;
         TracingThread[] threads;
+        Thread[] ths;
+        Scene scene;
         int threadsFinished = 0;
         bool rendering = false;
         bool resetFrame = true;
@@ -81,6 +85,7 @@ namespace Lighthouse3
         float framesDivider;
 
         bool lastSamplesView = false;
+        bool threadsStarted = false;
 
 
 
@@ -91,12 +96,15 @@ namespace Lighthouse3
         private readonly object syncLock = new object();
         private readonly float adaptiveSamplingFactor = 0.5f;
 
+
+
         private Camera() { }
-        public Camera(Vector3 position, Vector3 direction, int width, int height,
+        public Camera(Scene scene, Vector3 position, Vector3 direction, int width, int height,
             float screenDistance = 1, int raysPerPixel = 1, ProjectionType projection = ProjectionType.Perspective,
             bool gammaCorrection = false, RayTracer rayTracer = RayTracer.Whitted, bool antiAliasing = false, float distortion = 0.2f,
             float vignettingFactor = 0f, bool stratification = false, bool blueNoise = false, AdaptiveSamplingMethod adaptiveSampling = AdaptiveSamplingMethod.None)
         {
+            this.scene = scene;
             this.position = position;
             if (direction.LengthSquared != 0)
                 direction = direction.Normalized();
@@ -125,10 +133,27 @@ namespace Lighthouse3
             if (direction.Z < 0)
                 up = -up;
 
-
-            numberOfThreads = Environment.ProcessorCount - 1;
+            Console.WriteLine("Cores: " + Environment.ProcessorCount);
+            numberOfThreads = Environment.ProcessorCount * 2;
             if (numberOfThreads > 0)
+            {
                 threads = new TracingThread[numberOfThreads];
+                ths = new Thread[numberOfThreads];
+                for (int t = 0; t < numberOfThreads; t++)
+                {
+                    threads[t] = new TracingThread(t, this, (threadIndex) =>
+                    {
+                        lock (syncLock)
+                        {
+                            if (++threadsFinished == numberOfThreads)
+                            {
+                                FinishFrame();
+                            }
+                        }
+                    });
+                    ths[t] = new Thread(new ThreadStart(threads[t].ThreadProc));
+                }
+            }
 
             rays = new Ray[screenWidth * screenHeight * raysPerPixel];
             for (int i = 0; i < screenWidth * screenHeight * raysPerPixel; i++)
@@ -143,8 +168,7 @@ namespace Lighthouse3
         {
             if (threads != null)
                 foreach (TracingThread thread in threads)
-                    if (thread != null)
-                        thread.abort = true;
+                        thread.sleep = true;
 
             if (stratification)
             {
@@ -321,7 +345,7 @@ namespace Lighthouse3
             return false;
         }
 
-        public void RenderFrame(Scene scene)
+        public void RenderFrame()
         {
             if (rendering)
                 return;
@@ -358,12 +382,12 @@ namespace Lighthouse3
 
             if (numberOfThreads < 2)
             {
-                MainThreadFrame(scene);
+                MainThreadFrame();
                 FinishFrame();
             }
             else
             {
-                MultithreadedFrame(scene);
+                MultithreadedFrame();
             }
         }
 
@@ -581,43 +605,41 @@ namespace Lighthouse3
             }
         }
 
-        public void MainThreadFrame(Scene scene)
+        public void MainThreadFrame()
         {
             for (int x = 0; x < screenWidth; x++)
             {
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    CalculateRay(x, y, scene);
+                    CalculateRay(x, y);
                     if (adaptiveSampling != AdaptiveSamplingMethod.None)
-                        AdaptiveSampling(x, y, scene);
+                        AdaptiveSampling(x, y);
 
                     pixelColors[x + y * screenWidth] = GetFinalColor(x, y);
                 }
             }
         }
 
-        public void MultithreadedFrame(Scene scene)
+        public void MultithreadedFrame()
         {
             threadsFinished = 0;
 
             for (int t = 0; t < numberOfThreads; t++)
             {
-                threads[t] = new TracingThread(t, this, scene, (threadIndex) =>
+                threads[t].sleep = false;
+            }
+
+            if (!threadsStarted)
+            {
+                threadsStarted = true;
+                for (int t = 0; t < numberOfThreads; t++)
                 {
-                    lock (syncLock)
-                    {
-                        if (++threadsFinished == numberOfThreads)
-                        {
-                            FinishFrame();
-                        }
-                    }
-                });
-                Thread th = new Thread(new ThreadStart(threads[t].ThreadProc));
-                th.Start();
+                    ths[t].Start();
+                }
             }
         }
 
-        public void AdaptiveSampling(int x, int y, Scene scene)
+        public void AdaptiveSampling(int x, int y)
         {
             if (adaptiveSamplingWeights == null)
                 return;
@@ -630,10 +652,10 @@ namespace Lighthouse3
             }
 
             for (int i = 0; i < extraRays; i++)
-                CalculateRay(x, y, scene);
+                CalculateRay(x, y);
         }
 
-        public void CalculateRay(int x, int y, Scene scene, bool debug = false)
+        public void CalculateRay(int x, int y, bool debug = false)
         {
             int index = x + y * screenWidth;
 
@@ -647,7 +669,7 @@ namespace Lighthouse3
                 Vector3 combinedColor = Vector3.Zero;
                 for (int i = 0; i < raysPerPixel; i++)
                 {
-                    combinedColor += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug);
+                    combinedColor += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], debug);
                 }
                 if (adaptiveSampling != AdaptiveSamplingMethod.None)
                     pixels[index].samples += raysPerPixel;
@@ -658,22 +680,22 @@ namespace Lighthouse3
             }
             else
             {
-                pixels[index].color += TraceRay(rays[index], scene, debug);
+                pixels[index].color += TraceRay(rays[index], debug);
                 if (adaptiveSampling != AdaptiveSamplingMethod.None)
                     pixels[index].samples++;
             }
         }
 
-        public void DebugRay(Scene scene, int x, int y)
+        public void DebugRay(int x, int y)
         {
             if (x <= 0 || y <= 0)
                 return;
-            CalculateRay(x, y, scene, true);
+            CalculateRay(x, y, true);
             pixelColors[x + y * screenWidth] = GetFinalColor(x, y, debug: true);
             pixelsChanged = true;
         }
 
-        public Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
+        public Vector3 TraceRay(Ray ray, bool debug = false)
         {
             if (rayTracer == RayTracer.Whitted)
                 return Whitted.TraceRay(ray, scene, debug: debug);
@@ -749,41 +771,66 @@ namespace Lighthouse3
     {
         private readonly int threadIndex;
         private readonly Camera camera;
-        private readonly Scene scene;
-        public bool abort = false;
+        public bool sleep = false;
 
         private TacingThreadCallback callback;
 
-        public TracingThread(int threadIndex, Camera camera, Scene scene, TacingThreadCallback callback)
+        [DllImport("kernel32")]
+        static extern int GetCurrentThreadId();
+
+        public TracingThread(int threadIndex, Camera camera, TacingThreadCallback callback)
         {
             this.threadIndex = threadIndex;
             this.camera = camera;
-            this.scene = scene;
             this.callback = callback;
+            foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
+            {
+                int utid = GetCurrentThreadId();
+                if (utid == pt.Id)
+                {
+                    long processor = 0x0000 + threadIndex / 2 + 1;
+                    pt.ProcessorAffinity = (IntPtr)processor;
+                    Console.WriteLine("Thread " + threadIndex + " set to processor " + processor);
+                }
+            }
         }
 
         public void ThreadProc()
         {
+
             //Initializes random seed in calc
             Calc.Init();
-            for (int x = threadIndex; x < camera.screenWidth; x += camera.numberOfThreads)
+
+            while (true)
             {
-                for (int y = 0; y < camera.screenHeight; y++)
+                if (sleep)
                 {
-                    if (abort)
-                        return;
+                    Thread.Sleep(1);
+                    continue;
+                }
+                for (int x = threadIndex; x < camera.screenWidth; x += camera.numberOfThreads)
+                {
+                    for (int y = 0; y < camera.screenHeight; y++)
+                    {
+                        if (sleep)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
 
-                    camera.CalculateRay(x, y, scene);
-                    if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
-                        camera.AdaptiveSampling(x, y, scene);
+                        camera.CalculateRay(x, y);
+                        if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
+                            camera.AdaptiveSampling(x, y);
 
-                    camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
+                        camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
+                    }
+                }
+                if (!sleep)
+                {
+                    sleep = true;
+                    callback.Invoke(threadIndex);
                 }
             }
-
-
-            if (!abort)
-                callback?.Invoke(threadIndex);
         }
     }
 }

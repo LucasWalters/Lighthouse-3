@@ -61,7 +61,7 @@ namespace Lighthouse3 {
 
         public void DebugRay(int x, int y)
         {
-            camera.DebugRay(scene, x, y);
+            camera.DebugRay(x, y);
         }
 
 		public void Render(FrameEventArgs e)
@@ -71,7 +71,7 @@ namespace Lighthouse3 {
                 screen.SetPixels(camera.pixelColors);
                 camera.pixelsChanged = false;
             }
-            camera.RenderFrame(scene);
+            camera.RenderFrame();
 
             if (!showStats)
                 return;

@@ -19,6 +19,7 @@ namespace Lighthouse3.Scenes
 
             scene.mainCamera =
                 new Camera(
+                    scene,
                     position: new Vector3(-100, -100, -100),
                     direction: new Vector3(1, 1, 1),
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
@@ -54,6 +55,7 @@ namespace Lighthouse3.Scenes
 
             scene.mainCamera =
                 new Camera(
+                    scene,
                     position: new Vector3(0, 1, -5),
                     direction: new Vector3(0, 0, 1),
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
@@ -88,6 +90,7 @@ namespace Lighthouse3.Scenes
 
             scene.mainCamera =
                 new Camera(
+                    scene,
                     position: new Vector3(0, 50, 10),
                     direction: new Vector3(0, -1, 0.005f).Normalized(),
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
@@ -121,6 +124,7 @@ namespace Lighthouse3.Scenes
             Scene scene = new Scene();
             scene.mainCamera =
                 new Camera(
+                    scene,
                     position: new Vector3(0, 0, -5),
                     direction: new Vector3(0, 0, 1),
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
@@ -164,8 +168,10 @@ namespace Lighthouse3.Scenes
 
         public static Scene WhittedScene()
         {
-            Scene scene = new Scene(); scene.mainCamera =
+            Scene scene = new Scene(); 
+            scene.mainCamera =
                  new Camera(
+                    scene,
                      position: new Vector3(0, 0.5f, -3),
                      direction: new Vector3(0, 0, 1),
                      Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
@@ -215,6 +221,7 @@ namespace Lighthouse3.Scenes
             Scene scene = new Scene();
             scene.mainCamera =
                 new Camera(
+                    scene,
                     position: new Vector3(278, 273, -800),
                     direction: new Vector3(0, 0, 1),
                     Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT,
