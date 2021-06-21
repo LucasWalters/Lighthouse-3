@@ -16,6 +16,7 @@ namespace Lighthouse3.RayTracers
 
         public static Vector3 TraceRay(Ray ray, Scene scene, bool debug = false)
         {
+            //TODO: declare all these things only once, outside the function
             Vector3 totalColor = Color.White;
             Vector3 totalEnergy = Color.Black;
             bool sampleLight = true;
@@ -42,9 +43,11 @@ namespace Lighthouse3.RayTracers
                     // If we shouldn't sample light check if we are using MIS and if so, do sample it but with both PDFs
                     if (!sampleLight)
                     {
+                        //TODO: move this ifstatement to the other if statement?
                         if (!MIS)
                             break;
 
+                        //TODO: move the declaration outside of loop
                         Rectangle rect = (Rectangle)intersection.hit;
                         float cos_o = Vector3.Dot(-ray.direction, rect.normal);
                         float cos_i = Vector3.Dot(ray.direction, lastNormal);

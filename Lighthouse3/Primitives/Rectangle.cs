@@ -40,6 +40,7 @@ namespace Lighthouse3.Primitives
                 n = -n;
                 rayDot = -rayDot;
             }
+            //TODO change t, get a faster dot product, find out if ray.origin costs a lot of time
             t = Vector3.Dot(topLeft - ray.origin, n);
             if (t < 0)
             {
