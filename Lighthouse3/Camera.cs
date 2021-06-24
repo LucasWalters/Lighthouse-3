@@ -132,6 +132,7 @@ namespace Lighthouse3
             // Make sure up always points up (unless direction is (0, (-)1, 0)
             if (direction.Z < 0)
                 up = -up;
+            stopwatch = Stopwatch.StartNew();
 
             Console.WriteLine("Cores: " + Environment.ProcessorCount);
             numberOfThreads = Environment.ProcessorCount * 2;
@@ -152,6 +153,7 @@ namespace Lighthouse3
                         }
                     });
                     ths[t] = new Thread(new ThreadStart(threads[t].ThreadProc));
+                    ths[t].Priority = ThreadPriority.Highest;
                 }
             }
 
@@ -355,7 +357,7 @@ namespace Lighthouse3
             rendering = true;
 
             if (timeFrames)
-                stopwatch = Stopwatch.StartNew();
+                stopwatch.Restart();
 
             if (resetFrame)
             {
@@ -623,6 +625,7 @@ namespace Lighthouse3
         public void MultithreadedFrame()
         {
             threadsFinished = 0;
+            TracingThread.workLeft = screenWidth * screenHeight;
 
             for (int t = 0; t < numberOfThreads; t++)
             {
@@ -774,6 +777,7 @@ namespace Lighthouse3
         public bool sleep = false;
 
         private TacingThreadCallback callback;
+        public static int workLeft;
 
         [DllImport("kernel32")]
         static extern int GetCurrentThreadId();
@@ -808,27 +812,33 @@ namespace Lighthouse3
                     Thread.Sleep(1);
                     continue;
                 }
-                for (int x = threadIndex; x < camera.screenWidth; x += camera.numberOfThreads)
+
+                while (true)
                 {
-                    for (int y = 0; y < camera.screenHeight; y++)
+                    if (sleep)
                     {
-                        if (sleep)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        camera.CalculateRay(x, y);
-                        if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
-                            camera.AdaptiveSampling(x, y);
-
-                        camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
+                        Thread.Sleep(1);
+                        continue;
                     }
-                }
-                if (!sleep)
-                {
-                    sleep = true;
-                    callback.Invoke(threadIndex);
+                    int index = Interlocked.Decrement(ref workLeft);
+
+                    if (index < 0)
+                    {
+                        sleep = true;
+                        callback.Invoke(threadIndex);
+                        continue;
+                    }
+
+                    //Console.WriteLine("Thread " + threadIndex + " grabbing work " + index);
+
+                    int x = index % camera.screenWidth;
+                    int y = index / camera.screenWidth;
+
+                    camera.CalculateRay(x, y);
+                    if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
+                        camera.AdaptiveSampling(x, y);
+
+                    camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
                 }
             }
         }

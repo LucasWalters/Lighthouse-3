@@ -40,7 +40,7 @@ namespace Lighthouse3 {
             this.window = window;
         }
 
-		public void Init()
+        public void Init()
 		{
             //screen.Clear(0xcc33ff);
             //small = new Sprite("../../assets/small.png");
@@ -64,14 +64,14 @@ namespace Lighthouse3 {
             camera.DebugRay(x, y);
         }
 
-		public void Render(FrameEventArgs e)
+        public void Render(FrameEventArgs e)
         {
+            camera.RenderFrame();
             if (camera.pixelsChanged)
             {
                 screen.SetPixels(camera.pixelColors);
                 camera.pixelsChanged = false;
             }
-            camera.RenderFrame();
 
             if (!showStats)
                 return;
