@@ -647,10 +647,8 @@ namespace Lighthouse3
                 Vector3 combinedColor = Vector3.Zero;
                 for (int i = 0; i < raysPerPixel; i++)
                 {
-                    //TODO: move ray index calc outside for loop
                     combinedColor += TraceRay(rays[x * raysPerPixel + y * screenWidth * raysPerPixel + i], scene, debug);
                 }
-                //TODO: remove adaptive sampling if statement(?) as we don't use adaptiveSampling
                 if (adaptiveSampling != AdaptiveSamplingMethod.None)
                     pixels[index].samples += raysPerPixel;
                 else

@@ -1,5 +1,4 @@
-﻿//#define BACKFACE_CULLING
-using OpenTK;
+﻿using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,21 +34,15 @@ namespace Lighthouse3.Primitives
         public override bool Intersect(Ray ray, out float t)
         {
             float rayDot = Vector3.Dot(ray.direction, normal);
-            Vector3 tempOr = ray.origin;
-
             Vector3 n = normal;
-            //this if statement is not necessary for the current scene
-#if BACKFACE_CULLING
+
             if (rayDot > 0)
             {
                 n = -n;
                 rayDot = -rayDot;
             }
-#endif
-            //TODO change t, get a faster dot product, find out if ray.origin costs a lot of time
-            Vector3 temp = topLeft - tempOr;
 
-            t = Vector3.Dot(temp, n);
+            t = Vector3.Dot(topLeft - ray.origin, n);
             if (t < 0)
             {
                 t /= rayDot;
@@ -70,21 +63,6 @@ namespace Lighthouse3.Primitives
             }
             return false;
         }
-
-        public float newDot(Vector3 A, Vector3 B)
-        {
-            float temp1 = A[0] * B[0];
-            float temp2 = A[1] * B[1];
-            float temp3 = A[2] * B[2];
-
-            //__m128 a4 = _mm_set_ps(A[0], A[1], A[2], 0);
-            //__m128 b4 = _mm_set_ps(B[0], B[1], B[2], 0);
-            
-            //__m128 d4 = _mm_add_ps(_mm_mul_ps(a4, b4), _mm_mul_ps(a4, b4));
-
-            return temp1+temp2 + temp3;
-        }
-
         public override Vector3 Normal(Intersection intersection = null)
         {
             return normal;
