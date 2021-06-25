@@ -52,7 +52,7 @@ namespace Lighthouse3.Primitives
             t = Vector3.Dot(temp, n);
             if (t < 0)
             {
-                t /= rayDot;
+                t /= rayDot; 
                 if (t >= ray.distance)
                     return false;
                 Vector3 toPoint = ray.GetPoint(t) - topLeft;
@@ -61,30 +61,16 @@ namespace Lighthouse3.Primitives
                 if (dotSide1 < 0 || dotSide2 < 0)
                     return false;
                 float proj = dotSide1 / side1.LengthSquared;
-                if (proj > 1)
+                float proj2 = dotSide2 / side2.LengthSquared;
+                if (proj > 1 || proj2 > 1 )//|| dotSide1 < 0 || dotSide2 < 0)
                     return false;
-                proj = dotSide2 / side2.LengthSquared;
-                if (proj > 1)
-                    return false;
+                //proj = dotSide2 / side2.LengthSquared;
+                //if (proj > 1)
+                //    return false;
                 return true;
             }
             return false;
         }
-
-        public float newDot(Vector3 A, Vector3 B)
-        {
-            float temp1 = A[0] * B[0];
-            float temp2 = A[1] * B[1];
-            float temp3 = A[2] * B[2];
-
-            //__m128 a4 = _mm_set_ps(A[0], A[1], A[2], 0);
-            //__m128 b4 = _mm_set_ps(B[0], B[1], B[2], 0);
-            
-            //__m128 d4 = _mm_add_ps(_mm_mul_ps(a4, b4), _mm_mul_ps(a4, b4));
-
-            return temp1+temp2 + temp3;
-        }
-
         public override Vector3 Normal(Intersection intersection = null)
         {
             return normal;

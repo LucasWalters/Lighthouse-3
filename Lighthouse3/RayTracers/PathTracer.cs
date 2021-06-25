@@ -24,6 +24,20 @@ namespace Lighthouse3.RayTracers
             float lastRefractiveIndex = Material.RefractiveIndex.Vacuum;
             Vector3 lastNormal = scene.mainCamera.direction;
             bool lastDiffuse = false;
+
+            //IMPROVED: declarations of stuff is done outside the while loop so it only happends once.
+            float cos_o, cos_i, solidAngle, lightPDF, misPDF;
+            float brdfPDF = Calc.Inv2Pi;
+            float epsilon = Calc.Epsilon;
+            Rectangle rect;
+
+            Vector3 normal, BRDF, intersectionPoint, randomPoint, toLight, illumination, point;
+            bool backface = false ;
+            bool killed = false;
+            bool occluded, isEven, refract;
+            float survivalChance, materialTypeRandom, randomTemp, dist, nDotR, reflectionChance;
+            int nrLights, x, y, z;
+
             while (true)
             {
                 Intersection intersection = ray.NearestIntersection(scene, debug);
@@ -35,6 +49,9 @@ namespace Lighthouse3.RayTracers
 
                 Material material = intersection.hit.material;
 
+                //if (!MIS)
+                //    break;
+
                 if (material.emissive > 0f)
                 {
                     if (debug)
@@ -43,19 +60,19 @@ namespace Lighthouse3.RayTracers
                     // If we shouldn't sample light check if we are using MIS and if so, do sample it but with both PDFs
                     if (!sampleLight)
                     {
-                        //TODO: move this ifstatement to the other if statement?
-                        if (!MIS)
+
+                        if (!MIS) //IMPROVED: This is moved outside the 2 if statements, so that a break happends as fast as possible if necessary
                             break;
 
-                        //TODO: move the declaration outside of loop
-                        Rectangle rect = (Rectangle)intersection.hit;
-                        float cos_o = Vector3.Dot(-ray.direction, rect.normal);
-                        float cos_i = Vector3.Dot(ray.direction, lastNormal);
+                        rect = (Rectangle)intersection.hit;
+                        cos_o = Vector3.Dot(-ray.direction, rect.normal);
+                        cos_i = Vector3.Dot(ray.direction, lastNormal);
 
-                        float solidAngle = (cos_o * rect.area) / (intersection.distance * intersection.distance);
-                        float lightPDF = 1f / solidAngle;
-                        float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
-                        float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(brdfPDF, lightPDF);
+                        solidAngle = (cos_o * rect.area) / (intersection.distance * intersection.distance);
+                        lightPDF = 1f / solidAngle;
+                        //IMPROVED: as brdfPDF here is a static number, this can be declared outside the while loop
+                        //brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
+                        misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(brdfPDF, lightPDF);
                         if (lastDiffuse)
                             totalColor *= brdfPDF;
 
@@ -70,9 +87,9 @@ namespace Lighthouse3.RayTracers
                 }
 
 
-                Vector3 normal = intersection.hit.Normal(intersection);
+                normal = intersection.hit.Normal(intersection);
 
-                bool backface = false;
+                //bool backface = false;
                 if (Vector3.Dot(ray.direction, normal) > 0)
                 {
                     normal = -normal;
@@ -80,63 +97,66 @@ namespace Lighthouse3.RayTracers
                 }
                 lastNormal = normal;
 
-                bool killed = false;
+                //bool killed = false;
 
                 // Russian Roulette
-                float survivalChance = Calc.Clamp(Calc.Max(material.color.X, material.color.Y, material.color.Z), Calc.Epsilon, 0.9f);
-                if (Calc.Random() > survivalChance)
+                survivalChance = Calc.Clamp(Calc.Max(material.color.X, material.color.Y, material.color.Z), epsilon, 0.9f);
+                //IMPROVED: call Random only once
+                randomTemp = Calc.Random();
+                if (randomTemp > survivalChance)
                 {
                     killed = true;
                 }
 
-                float materialTypeRandom = Calc.Random();
+                materialTypeRandom = randomTemp;
 
                 //Handle diffuse color
                 if (materialTypeRandom < material.diffuse)
                 {
-                    Vector3 BRDF = material.color * Calc.InvPi;
+                    //IMPROVED: calc.inv2pi = brdfPDF
+                    BRDF = material.color * brdfPDF;
 
-                    int nrLights = scene.lights.Length;
+                    nrLights = scene.lights.Length;
                     AreaLight light = (AreaLight)scene.lights[nrLights > 1 ? Calc.RandomInt(0, nrLights) : 0];
 
                     // Direct Illumination
-                    Vector3 intersectionPoint = ray.GetPoint(intersection.distance);
-                    Vector3 randomPoint = light.RandomPointOnLight();
-                    Vector3 toLight = randomPoint - intersectionPoint;
-                    float dist = toLight.Length;
+                    intersectionPoint = ray.GetPoint(intersection.distance);
+                    randomPoint = light.RandomPointOnLight();
+                    toLight = randomPoint - intersectionPoint;
+                    dist = toLight.Length;
                     toLight /= dist;
-                    float cos_o = Vector3.Dot(-toLight, light.rect.normal);
-                    float cos_i = Vector3.Dot(toLight, normal);
+                    cos_o = Vector3.Dot(-toLight, light.rect.normal);
+                    cos_i = Vector3.Dot(toLight, normal);
                     if (cos_o > 0 && cos_i > 0)
                     {
                         // light is not behind surface point, trace shadow ray
-                        Ray lightRay = new Ray(intersectionPoint + Calc.Epsilon * toLight, toLight);
-                        bool occluded = lightRay.Occluded(scene.primitives, dist - Calc.Epsilon * 2);
+                        Ray lightRay = new Ray(intersectionPoint + epsilon * toLight, toLight);
+                        occluded = lightRay.Occluded(scene.primitives, dist - epsilon * 2);
                         if (!occluded)
                         {
                             // light is visible (V(p,p’)=1); calculate transport
-                            float solidAngle = (cos_o * light.rect.area) / (dist * dist);
-                            float lightPDF = 1f / solidAngle;
-                            float brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
-                            float misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(lightPDF, brdfPDF);
+                            solidAngle = (cos_o * light.rect.area) / (dist * dist);
+                            lightPDF = 1f / solidAngle;
+                            //brdfPDF = Calc.Inv2Pi; //cos_i * Calc.InvPi;   Currently not using cosine random reflections
+                            misPDF = lightPDF + brdfPDF;// Calc.PowerHeuristic(lightPDF, brdfPDF);
 
                             // Multiply result with the number of lights in the scene
                             // If using MIS use both PDFs
-                            Vector3 illumination = totalColor * (cos_i / (MIS ?  misPDF : lightPDF)) * BRDF * light.color * nrLights * light.intensity;
+                            illumination = totalColor * (cos_i / (MIS ?  misPDF : lightPDF)) * BRDF * light.color * nrLights * light.intensity;
                             //Render checkerboard pattern
                             if (material.checkerboard > 0)
                             {
-                                Vector3 point = ray.GetPoint(intersection.distance);
-                                int x = (int)(point.X / material.checkerboard);
+                                point = ray.GetPoint(intersection.distance);
+                                x = (int)(point.X / material.checkerboard);
                                 if (point.X < 0)
                                     x++;
-                                int y = (int)(point.Y / material.checkerboard);
+                                y = (int)(point.Y / material.checkerboard);
                                 if (point.Y < 0)
                                     y++;
-                                int z = (int)(point.Z / material.checkerboard);
+                                z = (int)(point.Z / material.checkerboard);
                                 if (point.Z < 0)
                                     z++;
-                                bool isEven = (x + y + z) % 2 == 0;
+                                isEven = (x + y + z) % 2 == 0;
                                 illumination *= (isEven ? 1 : 0.5f);
                             }
                             totalEnergy += illumination;
@@ -147,10 +167,11 @@ namespace Lighthouse3.RayTracers
 
                     ray = ray.RandomReflect(intersection.distance, normal);
                     lastDiffuse = true;
-                    float nDotR = Vector3.Dot(normal, ray.direction);
-                    float PDF = Calc.Inv2Pi; //nDotR * Calc.InvPi;   Currently not using cosine random reflections
+                    nDotR = Vector3.Dot(normal, ray.direction);
+                    //IMPROVED: PDF == brdfPDF
+                    //float PDF = Calc.Inv2Pi; //nDotR * Calc.InvPi;   Currently not using cosine random reflections
                     sampleLight = false;
-                    totalColor *= (1f / survivalChance) * BRDF * (nDotR / PDF);
+                    totalColor *= (1f / survivalChance) * BRDF * (nDotR / brdfPDF);
                 }
                 //Handle specularity
                 else if (materialTypeRandom < material.specularity + material.diffuse)
@@ -170,17 +191,14 @@ namespace Lighthouse3.RayTracers
                     if (killed)
                         break;
 
-                    // Refract the ray to either go into the material or come out of the material
-                    Ray refraction;
-                    float reflectionChance;
-                    refraction = ray.Refract(intersection.distance, normal, currentRefractiveIndex, backface ? lastRefractiveIndex : material.refractiveIndex, out reflectionChance);
+                    // Refract the ray to either go into the material or come out of the material                    
+                    Ray refraction = ray.Refract(intersection.distance, normal, currentRefractiveIndex, backface ? lastRefractiveIndex : material.refractiveIndex, out reflectionChance);
 
-                    bool refract;
 
                     if (reflectionChance >= 1f)
                         //Total internal reflection
                         refract = false;
-                    else if (backface || reflectionChance < Calc.Epsilon)
+                    else if (backface || reflectionChance < epsilon)
                         //Either backface or reflection chance too low, just ignore
                         refract = true;
                     else
