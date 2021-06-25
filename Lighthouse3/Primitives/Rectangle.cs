@@ -1,4 +1,4 @@
-﻿//#define BACKFACE_CULLING
+﻿#define BACKFACE_CULLING
 using OpenTK;
 using System;
 using System.Collections.Generic;
