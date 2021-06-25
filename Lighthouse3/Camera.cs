@@ -143,7 +143,7 @@ namespace Lighthouse3
                 {
                     threads[t] = new TracingThread(t, this, barrier);
                     ths[t] = new Thread(new ThreadStart(threads[t].ThreadProc));
-                    ths[t].Priority = ThreadPriority.Highest;
+                    //ths[t].Priority = ThreadPriority.Highest;
                 }
             }
 
