@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿using System.Numerics;
 using System;
 using System.Collections;
 
@@ -59,26 +59,44 @@ namespace Lighthouse3.Primitives
         public override Vector3 Min()
         {
             Vector3 min = p0;
-            for (int xyz = 0; xyz < 3; xyz++)
-            {
-                if (p1[xyz] < min[xyz])
-                    min[xyz] = p1[xyz];
-                if (p2[xyz] < min[xyz])
-                    min[xyz] = p2[xyz];
-            }
+
+            if (p1.X < min.X)
+                min.X = p1.X;
+            if (p2.X < min.X)
+                min.X = p2.X;
+
+            if (p1.Y < min.Y)
+                min.Y = p1.Y;
+            if (p2.Y < min.Y)
+                min.Y = p2.Y;
+
+            if (p1.Z < min.Z)
+                min.Z = p1.Z;
+            if (p2.Z < min.Z)
+                min.Z = p2.Z;
+
             return min;
         }
 
         public override Vector3 Max()
         {
             Vector3 max = p0;
-            for (int xyz = 0; xyz < 3; xyz++)
-            {
-                if (p1[xyz] > max[xyz])
-                    max[xyz] = p1[xyz];
-                if (p2[xyz] > max[xyz])
-                    max[xyz] = p2[xyz];
-            }
+
+            if (p1.X > max.X)
+                max.X = p1.X;
+            if (p2.X > max.X)
+                max.X = p2.X;
+
+            if (p1.Y > max.Y)
+                max.Y = p1.Y;
+            if (p2.Y > max.Y)
+                max.Y = p2.Y;
+
+            if (p1.Z > max.Z)
+                max.Z = p1.Z;
+            if (p2.Z > max.Z)
+                max.Z = p2.Z;
+
             return max;
         }
     }

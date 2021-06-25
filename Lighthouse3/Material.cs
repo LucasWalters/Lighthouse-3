@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTK.Graphics;
 using System.Drawing;
-using OpenTK;
+using System.Numerics;
 
 namespace Lighthouse3
 {

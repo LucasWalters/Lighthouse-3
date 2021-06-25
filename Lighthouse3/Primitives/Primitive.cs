@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using OpenTK.Graphics;
 using System.Drawing;
-using OpenTK;
+using System.Numerics;
 using Lighthouse3.BVH;
 
 namespace Lighthouse3.Primitives

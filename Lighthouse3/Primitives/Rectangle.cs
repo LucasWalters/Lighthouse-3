@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,9 @@ namespace Lighthouse3.Primitives
         public Vector3 normal;
         public float area;
 
+        private readonly float invSide1LengthSquared;
+        private readonly float invSide2LengthSquared;
+
         public Rectangle(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Material material) : base(material)
         {
             this.topLeft = topLeft;
@@ -25,10 +28,12 @@ namespace Lighthouse3.Primitives
             side1 = topRight - topLeft;
             side2 = bottomLeft - topLeft;
             normal = Vector3.Cross(side1, side2).Normalized();
-            area = side1.Length * side2.Length;
+            area = side1.Length() * side2.Length();
             bounds.min = Min();
             bounds.max = Max();
             bounds = bounds.ResetCenter();
+            invSide1LengthSquared = 1f / side1.LengthSquared();
+            invSide2LengthSquared = 1f / side2.LengthSquared();
         }
 
         public override bool Intersect(Ray ray, out float t)
@@ -51,10 +56,10 @@ namespace Lighthouse3.Primitives
                 float dotSide2 = Vector3.Dot(side2, toPoint);
                 if (dotSide1 < 0 || dotSide2 < 0)
                     return false;
-                float proj = dotSide1 / side1.LengthSquared;
+                float proj = dotSide1 * invSide1LengthSquared;
                 if (proj > 1)
                     return false;
-                proj = dotSide2 / side2.LengthSquared;
+                proj = dotSide2 * invSide2LengthSquared;
                 if (proj > 1)
                     return false;
                 return true;
@@ -77,15 +82,26 @@ namespace Lighthouse3.Primitives
             Vector3 bottomRight = bottomLeft + side1;
 
             Vector3 min = topLeft;
-            for (int xyz = 0; xyz < 3; xyz++)
-            {
-                if (topRight[xyz] < min[xyz])
-                    min[xyz] = topRight[xyz];
-                if (bottomLeft[xyz] < min[xyz])
-                    min[xyz] = bottomLeft[xyz];
-                if (bottomRight[xyz] < min[xyz])
-                    min[xyz] = bottomRight[xyz];
-            }
+            if (topRight.X < min.X)
+                min.X = topRight.X;
+            if (bottomLeft.X < min.X)
+                min.X = bottomLeft.X;
+            if (bottomRight.X < min.X)
+                min.X = bottomRight.X;
+
+            if (topRight.Y < min.Y)
+                min.Y = topRight.Y;
+            if (bottomLeft.Y < min.Y)
+                min.Y = bottomLeft.Y;
+            if (bottomRight.Y < min.Y)
+                min.Y = bottomRight.Y;
+
+            if (topRight.Z < min.Z)
+                min.Z = topRight.Z;
+            if (bottomLeft.Z < min.Z)
+                min.Z = bottomLeft.Z;
+            if (bottomRight.Z < min.Z)
+                min.Z = bottomRight.Z;
             return min;
         }
 
@@ -94,15 +110,26 @@ namespace Lighthouse3.Primitives
             Vector3 bottomRight = bottomLeft + side1;
 
             Vector3 max = topLeft;
-            for (int xyz = 0; xyz < 3; xyz++)
-            {
-                if (topRight[xyz] > max[xyz])
-                    max[xyz] = topRight[xyz];
-                if (bottomLeft[xyz] > max[xyz])
-                    max[xyz] = bottomLeft[xyz];
-                if (bottomRight[xyz] > max[xyz])
-                    max[xyz] = bottomRight[xyz];
-            }
+            if (topRight.X > max.X)
+                max.X = topRight.X;
+            if (bottomLeft.X > max.X)
+                max.X = bottomLeft.X;
+            if (bottomRight.X > max.X)
+                max.X = bottomRight.X;
+
+            if (topRight.Y > max.Y)
+                max.Y = topRight.Y;
+            if (bottomLeft.Y > max.Y)
+                max.Y = bottomLeft.Y;
+            if (bottomRight.Y > max.Y)
+                max.Y = bottomRight.Y;
+
+            if (topRight.Z > max.Z)
+                max.Z = topRight.Z;
+            if (bottomLeft.Z > max.Z)
+                max.Z = bottomLeft.Z;
+            if (bottomRight.Z > max.Z)
+                max.Z = bottomRight.Z;
             return max;
         }
     }

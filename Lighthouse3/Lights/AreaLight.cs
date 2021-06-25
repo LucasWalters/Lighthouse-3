@@ -1,6 +1,6 @@
 ﻿using Lighthouse3.Primitives;
 using Lighthouse3.Scenes;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace Lighthouse3.Lights
             Vector3 intersectionPoint = intersection.ray.GetPoint(intersection.distance);
             Vector3 randomPoint = RandomPointOnLight();
             Vector3 toLight = randomPoint - intersectionPoint;
-            float dist = toLight.Length;
+            float dist = toLight.Length();
             toLight /= dist;
             float cos_o = Vector3.Dot(-toLight, rect.normal);
             float cos_i = Vector3.Dot(toLight, normal);

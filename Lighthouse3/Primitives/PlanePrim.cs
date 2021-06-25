@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Lighthouse3.Primitives
 {
-    public class Plane : Primitive
+    public class PlanePrim : Primitive
     {
         public Vector3 position;
         public Vector3 normal;
 
-        public Plane(Vector3 position, Vector3 normal, Material material) : base(material)
+        public PlanePrim(Vector3 position, Vector3 normal, Material material) : base(material)
         {
             this.position = position;
             this.normal = normal;

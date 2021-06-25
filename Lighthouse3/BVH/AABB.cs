@@ -1,5 +1,5 @@
 ﻿using Lighthouse3.Primitives;
-using OpenTK;
+using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,13 +37,20 @@ namespace Lighthouse3.BVH
                 //max = bounds.max;
                 Vector3 newMin = bounds.min;
                 Vector3 newMax = bounds.max;
-                for (int xyz = 0; xyz < 3; xyz++)
-                {
-                    if (newMin[xyz] < min[xyz])
-                        min[xyz] = newMin[xyz];
-                    if (newMax[xyz] > max[xyz])
-                        max[xyz] = newMax[xyz];
-                }
+                if (newMin.X < min.X)
+                    min.X = newMin.X;
+                if (newMax.X > max.X)
+                    max.X = newMax.X;
+
+                if (newMin.Y < min.Y)
+                    min.Y = newMin.Y;
+                if (newMax.Y > max.Y)
+                    max.Y = newMax.Y;
+
+                if (newMin.Z < min.Z)
+                    min.Z = newMin.Z;
+                if (newMax.Z > max.Z)
+                    max.Z = newMax.Z;
             }
             center = min + ((max - min) / 2f);
         }

@@ -1,5 +1,5 @@
 ﻿using Lighthouse3.Scenes;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
@@ -32,10 +32,10 @@ namespace Lighthouse3.Lights
             //Check if light is obstructed
             Vector3 rayDirection = toLight.Normalized();
             Ray ray = new Ray(intersectionPoint + rayDirection * Calc.Epsilon, rayDirection);
-            bool occluded = ray.OccludedSquared(scene.primitives, toLight.LengthSquared); //Note: Normalizing the length and then using lengthsquared doesn't help
+            bool occluded = ray.OccludedSquared(scene.primitives, toLight.LengthSquared()); //Note: Normalizing the length and then using lengthsquared doesn't help
             if (occluded)
                 return Color.Black;
-            float distance = toLight.LengthSquared;
+            float distance = toLight.LengthSquared();
             return color * Vector3.Dot(normal, rayDirection) * (intensity / distance);
         }
     }

@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿using System.Numerics;
 using OpenTK.Graphics;
 using System;
 
@@ -106,11 +106,6 @@ namespace Lighthouse3
             return new Vector3(Math.Abs(vector.X), Math.Abs(vector.Y), Math.Abs(vector.Z));
         }
 
-        public static Vector3 Permute(Vector3 vector, int x, int y, int z)
-        {
-            return new Vector3(vector[x], vector[y], vector[z]);
-        }
-
         // From https://gist.github.com/badboy/6267743
         public static uint WangHash(uint seed)
         {
@@ -158,7 +153,7 @@ namespace Lighthouse3
             do
             {
                 point = RandomInUnitCube();
-            } while (point.LengthSquared > 1);
+            } while (point.LengthSquared() > 1);
             return point;
         }
 
@@ -314,6 +309,20 @@ namespace Lighthouse3
             vector.Y /= other.Y;
             vector.Z /= other.Z;
             return vector;
+        }
+
+        public static Vector3 Normalized(this Vector3 vector)
+        {
+            return vector / vector.Length();
+        }
+
+        public static float Index(this Vector3 vector, int index)
+        {
+            if (index == 2)
+                return vector.Z;
+            if (index == 1)
+                return vector.Y;
+            return vector.X;
         }
 
     }

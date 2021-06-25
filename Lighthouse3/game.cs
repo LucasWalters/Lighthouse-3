@@ -3,10 +3,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+using OpenTK;
 using Lighthouse3.Primitives;
 using Lighthouse3.Scenes;
 
@@ -108,12 +109,12 @@ namespace Lighthouse3 {
             {
                 float speed = moveSpeed;
                 if (keyboard[Key.ShiftLeft]) speed *= 100;
-                if (keyboard[Key.Up]) { camera.RotateX(-rotateSpeed * deltaTime); keyPressed = true; }
-                if (keyboard[Key.Down]) { camera.RotateX(rotateSpeed * deltaTime); keyPressed = true; }
-                if (keyboard[Key.Left]) { camera.RotateY(-rotateSpeed * deltaTime); keyPressed = true; }
-                if (keyboard[Key.Right]) { camera.RotateY(rotateSpeed * deltaTime); keyPressed = true; }
-                if (keyboard[Key.T]) { camera.RotateZ(rotateSpeed * deltaTime); keyPressed = true; }
-                if (keyboard[Key.Z]) { camera.RotateZ(rotateSpeed * deltaTime); keyPressed = true; }
+                //if (keyboard[Key.Up]) { camera.RotateX(-rotateSpeed * deltaTime); keyPressed = true; }
+                //if (keyboard[Key.Down]) { camera.RotateX(rotateSpeed * deltaTime); keyPressed = true; }
+                //if (keyboard[Key.Left]) { camera.RotateY(-rotateSpeed * deltaTime); keyPressed = true; }
+                //if (keyboard[Key.Right]) { camera.RotateY(rotateSpeed * deltaTime); keyPressed = true; }
+                //if (keyboard[Key.T]) { camera.RotateZ(rotateSpeed * deltaTime); keyPressed = true; }
+                //if (keyboard[Key.Z]) { camera.RotateZ(rotateSpeed * deltaTime); keyPressed = true; }
                 if (keyboard[Key.W]) { camera.MoveZ(speed * deltaTime); keyPressed = true; }
                 if (keyboard[Key.S]) { camera.MoveZ(-speed * deltaTime); keyPressed = true; }
                 if (keyboard[Key.A]) { camera.MoveX(speed * deltaTime); keyPressed = true; }

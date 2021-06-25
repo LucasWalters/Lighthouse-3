@@ -1,7 +1,7 @@
 ﻿using Lighthouse3.Lights;
 using Lighthouse3.Primitives;
 using Lighthouse3.Scenes;
-using OpenTK;
+using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,7 +100,7 @@ namespace Lighthouse3.RayTracers
                     Vector3 intersectionPoint = ray.GetPoint(intersection.distance);
                     Vector3 randomPoint = light.RandomPointOnLight();
                     Vector3 toLight = randomPoint - intersectionPoint;
-                    float dist = toLight.Length;
+                    float dist = toLight.Length();
                     toLight /= dist;
                     float cos_o = Vector3.Dot(-toLight, light.rect.normal);
                     float cos_i = Vector3.Dot(toLight, normal);

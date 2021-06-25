@@ -3,7 +3,7 @@ using Lighthouse3.Lights;
 using Lighthouse3.Primitives;
 using ObjLoader.Loader.Data.Elements;
 using ObjLoader.Loader.Loaders;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 using System;
 using System.Collections;
@@ -21,7 +21,7 @@ namespace Lighthouse3.Scenes
         public Vector3 backgroundColor;
         public Light[] lights = new Light[0];
         public Primitive[] primitives = new Primitive[0];
-        public Plane[] planes = new Plane[0];
+        public PlanePrim[] planes = new PlanePrim[0];
         public int[] indices;
 
         public BVHNode[] nodes;

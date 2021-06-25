@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using ObjLoader.Loader.Loaders;
-using OpenTK;
+using System.Numerics;
 using ObjLoader.Loader.Data.VertexData;
 using Lighthouse3.Primitives;
 using ObjLoader.Loader.Data.Elements;

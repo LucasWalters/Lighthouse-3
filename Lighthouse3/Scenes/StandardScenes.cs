@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Lighthouse3.Lights;
 using Lighthouse3.Primitives;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 
 namespace Lighthouse3.Scenes
@@ -148,13 +148,13 @@ namespace Lighthouse3.Scenes
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.checkerboard = 1f;
-            scene.planes = new Plane[]
+            scene.planes = new PlanePrim[]
             {
-                new Plane(new Vector3(-10, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
-                new Plane(new Vector3(0, -2, 0), new Vector3(0, 1, 0), Material.Gray),
-                new Plane(new Vector3(10, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
-                new Plane(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.DarkOliveGreen),
-                new Plane(new Vector3(0, 0, 10), new Vector3(0, 0, -1), checkerboard),
+                new PlanePrim(new Vector3(-10, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
+                new PlanePrim(new Vector3(0, -2, 0), new Vector3(0, 1, 0), Material.Gray),
+                new PlanePrim(new Vector3(10, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
+                new PlanePrim(new Vector3(0, 0, -10), new Vector3(0, 0, 1), Material.DarkOliveGreen),
+                new PlanePrim(new Vector3(0, 0, 10), new Vector3(0, 0, -1), checkerboard),
             };
             scene.primitives = new Primitive[]
             {
@@ -196,13 +196,13 @@ namespace Lighthouse3.Scenes
             };
             Material checkerboard = new Material(Color4.Gray);
             checkerboard.checkerboard = 1f;
-            scene.planes = new Plane[]
+            scene.planes = new PlanePrim[]
             {
-                new Plane(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
-                new Plane(new Vector3(0, 0, 5), new Vector3(0, 0, -1), checkerboard),
-                new Plane(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
-                new Plane(new Vector3(0, -1f, 0), new Vector3(0, 1, 0), checkerboard),
-                new Plane(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.YellowGreen),
+                new PlanePrim(new Vector3(-5, 0, 0), new Vector3(1, 0, 0), Material.BlueViolet),
+                new PlanePrim(new Vector3(0, 0, 5), new Vector3(0, 0, -1), checkerboard),
+                new PlanePrim(new Vector3(5, 0, 0), new Vector3(-1, 0, 0), Material.MediumVioletRed),
+                new PlanePrim(new Vector3(0, -1f, 0), new Vector3(0, 1, 0), checkerboard),
+                new PlanePrim(new Vector3(0, 10, 0), new Vector3(0, -1, 0), Material.YellowGreen),
             };
 
             scene.primitives = new Primitive[]

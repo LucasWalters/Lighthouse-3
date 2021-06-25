@@ -2,7 +2,7 @@
 using Lighthouse3.Lights;
 using Lighthouse3.Primitives;
 using Lighthouse3.Scenes;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 using System;
 using System.Collections;
@@ -22,7 +22,7 @@ namespace Lighthouse3
         {
             this.distance = float.MaxValue;
             this.origin = startPosition;
-            if (direction.LengthSquared != 0)
+            if (direction.LengthSquared() != 0)
                 direction = direction.Normalized();
             this.direction = direction;
             invDir.X = 1f / direction.X;
@@ -72,7 +72,7 @@ namespace Lighthouse3
                 }
             }
 
-            foreach (Plane plane in scene.planes)
+            foreach (PlanePrim plane in scene.planes)
             {
                 bool intersected = plane.Intersect(this, out t);
                 if (intersected && t < intersection.distance)

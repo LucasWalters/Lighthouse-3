@@ -1,6 +1,6 @@
 ﻿using System;
 using Lighthouse3.Primitives;
-using OpenTK;
+using System.Numerics;
 
 namespace Lighthouse3.BVH
 {
@@ -30,7 +30,7 @@ namespace Lighthouse3.BVH
             axisSize = centroidBounds.LongestAxis(out splittingAxis);
 
             k1 = numberOfBins * (1f - Calc.Epsilon) / axisSize;
-            k0 = centroidBounds.min[splittingAxis];
+            k0 = centroidBounds.min.Index(splittingAxis);
             childIndices = new int[4];
         }
 
@@ -39,7 +39,7 @@ namespace Lighthouse3.BVH
             axisSize = centroidBounds.LongestAxis(out splittingAxis);
 
             k1 = numberOfBins * (1f - Calc.Epsilon) / axisSize;
-            k0 = centroidBounds.min[splittingAxis];
+            k0 = centroidBounds.min.Index(splittingAxis);
             childIndices = new int[4];
             return this;
         }
@@ -66,13 +66,20 @@ namespace Lighthouse3.BVH
                 }
                 else
                 {
-                    for (int xyz = 0; xyz < 3; xyz++)
-                    {
-                        if (center[xyz] < r.min[xyz])
-                            r.min[xyz] = center[xyz];
-                        if (center[xyz] > r.max[xyz])
-                            r.max[xyz] = center[xyz];
-                    }
+                    if (center.X < r.min.X)
+                        r.min.X = center.X;
+                    if (center.X > r.max.X)
+                        r.max.X = center.X;
+
+                    if (center.Y < r.min.Y)
+                        r.min.Y = center.Y;
+                    if (center.Y > r.max.Y)
+                        r.max.Y = center.Y;
+
+                    if (center.Z < r.min.Z)
+                        r.min.Z = center.Z;
+                    if (center.Z > r.max.Z)
+                        r.max.Z = center.Z;
                 }
             }
             return r.ResetCenter();
@@ -105,7 +112,7 @@ namespace Lighthouse3.BVH
                 for (int i = leftTrigs; i <= rightIndex; i++)
                 {
                     Vector3 centroid1 = primBounds[indices[i + firstOrLeft]].center;
-                    float binID1 = k1 * (centroid1[splittingAxis] - k0);
+                    float binID1 = k1 * (centroid1.Index(splittingAxis) - k0);
 
                     //Belongs to the left
                     if (binID1 < binIndex)
@@ -124,7 +131,7 @@ namespace Lighthouse3.BVH
                             }
                             rightIndex = j - 1;
                             Vector3 centroid2 = primBounds[indices[j + firstOrLeft]].center;
-                            float binID2 = k1 * (centroid2[splittingAxis] - k0);
+                            float binID2 = k1 * (centroid2.Index(splittingAxis) - k0);
 
 
                             //Belongs to the left, swap 

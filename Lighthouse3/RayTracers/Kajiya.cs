@@ -1,5 +1,5 @@
 ﻿using Lighthouse3.Scenes;
-using OpenTK;
+using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,8 +54,8 @@ namespace Lighthouse3.RayTracers
                 Console.WriteLine("Ray direction: " + intersection.ray.direction);
                 if (intersection.hit is Primitives.Sphere)
                     Console.WriteLine("Sphere hit: " + ((Primitives.Sphere)intersection.hit).radius);
-                if (intersection.hit is Primitives.Plane)
-                    Console.WriteLine("Plane hit: " + ((Primitives.Plane)intersection.hit).position);
+                if (intersection.hit is Primitives.PlanePrim)
+                    Console.WriteLine("Plane hit: " + ((Primitives.PlanePrim)intersection.hit).position);
                 Console.WriteLine("Hit location: " + intersection.ray.GetPoint(intersection.distance));
                 Console.WriteLine("DEPTH " + depth + " GLOSSY: " + material.glossiness + " CURRENT INDEX: " + currentRefractiveIndex + " NEW INDEX: " + material.refractiveIndex + " BACKFACE: " + backface);
 

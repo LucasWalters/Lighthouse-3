@@ -1,6 +1,6 @@
 ﻿using Lighthouse3.Primitives;
-using OpenTK;
 using System;
+using System.Numerics;
 using System.Collections;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -104,7 +104,7 @@ namespace Lighthouse3
         {
             this.scene = scene;
             this.position = position;
-            if (direction.LengthSquared != 0)
+            if (direction.LengthSquared() != 0)
                 direction = direction.Normalized();
             this.direction = direction;
             this.screenWidth = width;
@@ -143,7 +143,7 @@ namespace Lighthouse3
                 {
                     threads[t] = new TracingThread(t, this, barrier);
                     ths[t] = new Thread(new ThreadStart(threads[t].ThreadProc));
-                    //ths[t].Priority = ThreadPriority.Highest;
+                    ths[t].Priority = ThreadPriority.Highest;
                 }
             }
 
@@ -192,7 +192,7 @@ namespace Lighthouse3
             bottomLeft = screenCenter - up + left;
 
             // Update Diagonal Length for FOV
-            diagonalLength = (bottomLeft - topRight).Length;
+            diagonalLength = (bottomLeft - topRight).Length();
 
             for (int x = 0; x < screenWidth; x++)
             {
@@ -286,7 +286,7 @@ namespace Lighthouse3
             float diff = (screenWidth - screenHeight) / 2;
             float divider = 1f / screenWidth;
             Vector2 point = new Vector2(x * divider, (y * aspectRatio + diff) * divider);
-            float dist = (point - new Vector2(0.5f, 0.5f)).LengthSquared;
+            float dist = (point - new Vector2(0.5f, 0.5f)).LengthSquared();
             return 1 - Calc.Clamp((vignettingFactor * dist), 0, 1);
         }
 
@@ -526,14 +526,24 @@ namespace Lighthouse3
                     Pixel pixel = pixels[dx + dy * screenWidth];
                     Vector3 color = pixel.color / pixel.samples;
 
-                    for (int xyz = 0; xyz < 3; xyz++)
-                    {
-                        if (color[xyz] > max[xyz])
-                            max[xyz] = color[xyz];
+                    
+                    if (color.X > max.X)
+                        max.X = color.X;
 
-                        if (color[xyz] < min[xyz])
-                            min[xyz] = color[xyz];
-                    }
+                    if (color.X < min.X)
+                        min.X = color.X;
+
+                    if (color.Y > max.Y)
+                        max.Y = color.Y;
+
+                    if (color.Y < min.Y)
+                        min.Y = color.Y;
+
+                    if (color.Z > max.Z)
+                        max.Z = color.Z;
+
+                    if (color.Z < min.Z)
+                        min.Z = color.Z;
 
                 }
             }
@@ -541,13 +551,20 @@ namespace Lighthouse3
             // From: https://dl-acm-org.proxy.library.uu.nl/doi/pdf/10.1145/37401.37410
             Vector3 thresholds = new Vector3(0.4f, 0.3f, 0.6f);
 
-            for (int xyz = 0; xyz < 3; xyz++)
+            float c = (max.X - min.X) / (max.X + min.X);
+            if (c > thresholds.X)
             {
-                float c = (max[xyz] - min[xyz]) / (max[xyz] + min[xyz]);
-                if (c > thresholds[xyz])
-                {
-                    return true;
-                }
+                return true;
+            }
+            c = (max.Y - min.Y) / (max.Y + min.Y);
+            if (c > thresholds.Y)
+            {
+                return true;
+            }
+            c = (max.Z - min.Z) / (max.Z + min.Z);
+            if (c > thresholds.Z)
+            {
+                return true;
             }
             return false;
         }
@@ -684,29 +701,29 @@ namespace Lighthouse3
         }
 
 
-        public void RotateX(float angle)
-        {
-            angle = angle * Calc.Pi / 180f;
-            Quaternion q = Quaternion.FromAxisAngle(-left, angle);
-            direction = Vector3.Transform(direction, q);
-            up = Vector3.Transform(up, q);
-        }
+        //public void RotateX(float angle)
+        //{
+        //    angle = angle * Calc.Pi / 180f;
+        //    Quaternion q = Quaternion.FromAxisAngle(-left, angle);
+        //    direction = Vector3.Transform(direction, q);
+        //    up = Vector3.Transform(up, q);
+        //}
 
-        public void RotateY(float angle)
-        {
-            angle = angle * Calc.Pi / 180f;
-            Quaternion q = Quaternion.FromAxisAngle(up, angle);
-            direction = Vector3.Transform(direction, q);
-            //up = Vector3.Transform(up, q);
-        }
+        //public void RotateY(float angle)
+        //{
+        //    angle = angle * Calc.Pi / 180f;
+        //    Quaternion q = Quaternion.FromAxisAngle(up, angle);
+        //    direction = Vector3.Transform(direction, q);
+        //    //up = Vector3.Transform(up, q);
+        //}
 
-        public void RotateZ(float angle)
-        {
-            angle = angle * Calc.Pi / 180f;
-            Quaternion q = Quaternion.FromAxisAngle(direction, angle);
-            //direction = Vector3.Transform(direction, q);
-            up = Vector3.Transform(up, q);
-        }
+        //public void RotateZ(float angle)
+        //{
+        //    angle = angle * Calc.Pi / 180f;
+        //    Quaternion q = Quaternion.FromAxisAngle(direction, angle);
+        //    //direction = Vector3.Transform(direction, q);
+        //    up = Vector3.Transform(up, q);
+        //}
 
         public void MoveX(float movement)
         {

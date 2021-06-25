@@ -1,5 +1,5 @@
 ﻿using Lighthouse3.Scenes;
-using OpenTK;
+using System.Numerics;
 using OpenTK.Graphics;
 
 namespace Lighthouse3
