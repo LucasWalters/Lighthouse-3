@@ -71,7 +71,6 @@ namespace Lighthouse3
         TracingThread[] threads;
         Thread[] ths;
         Scene scene;
-        int threadsFinished = 0;
         bool rendering = false;
         bool resetFrame = true;
         float distortion;
@@ -82,12 +81,10 @@ namespace Lighthouse3
         int strata = 0;
         float invStrata;
         float invRaysPerPixel;
-        float framesDivider;
+        float framesDivider = 1f;
 
         bool lastSamplesView = false;
         bool threadsStarted = false;
-
-
 
         float widthPerPixel;
         float heightPerPixel;
@@ -96,6 +93,7 @@ namespace Lighthouse3
         private readonly object syncLock = new object();
         private readonly float adaptiveSamplingFactor = 0.5f;
 
+        Barrier barrier;
 
 
         private Camera() { }
@@ -138,20 +136,12 @@ namespace Lighthouse3
             numberOfThreads = Environment.ProcessorCount * 2;
             if (numberOfThreads > 0)
             {
+                barrier = new Barrier(numberOfThreads, barrier => FinishFrame());
                 threads = new TracingThread[numberOfThreads];
                 ths = new Thread[numberOfThreads];
                 for (int t = 0; t < numberOfThreads; t++)
                 {
-                    threads[t] = new TracingThread(t, this, (threadIndex) =>
-                    {
-                        lock (syncLock)
-                        {
-                            if (++threadsFinished == numberOfThreads)
-                            {
-                                FinishFrame();
-                            }
-                        }
-                    });
+                    threads[t] = new TracingThread(t, this, barrier);
                     ths[t] = new Thread(new ThreadStart(threads[t].ThreadProc));
                     ths[t].Priority = ThreadPriority.Highest;
                 }
@@ -168,10 +158,6 @@ namespace Lighthouse3
         //Needs to be called everytime the camera's state changes
         public void UpdateCamera()
         {
-            if (threads != null)
-                foreach (TracingThread thread in threads)
-                        thread.sleep = true;
-
             if (stratification)
             {
                 double sqrt = Math.Sqrt(raysPerPixel);
@@ -349,15 +335,7 @@ namespace Lighthouse3
 
         public void RenderFrame()
         {
-            if (rendering)
-                return;
-            if (MaxFramesReached())
-                return;
 
-            rendering = true;
-
-            if (timeFrames)
-                stopwatch.Restart();
 
             if (resetFrame)
             {
@@ -380,7 +358,6 @@ namespace Lighthouse3
                 resetFrame = false;
             }
 
-            framesDivider = 1f / ++frames;
 
             if (numberOfThreads < 2)
             {
@@ -428,6 +405,9 @@ namespace Lighthouse3
 
         public void FinishFrame()
         {
+
+            framesDivider = 1f / ++frames;
+
             if (adaptiveSampling != AdaptiveSamplingMethod.None)
             {
                 SetAdaptiveSamplingWeights();
@@ -440,10 +420,11 @@ namespace Lighthouse3
             {
                 stopwatch.Stop();
                 Console.WriteLine("Frame finished after " + stopwatch.ElapsedMilliseconds + " ms");
+                stopwatch.Restart();
             }
 
+            TracingThread.workLeft = screenWidth * screenHeight;
             pixelsChanged = true;
-            rendering = false;
         }
 
         public bool ShouldSuperSampleFDivergence(int x, int y)
@@ -624,13 +605,6 @@ namespace Lighthouse3
 
         public void MultithreadedFrame()
         {
-            threadsFinished = 0;
-            TracingThread.workLeft = screenWidth * screenHeight;
-
-            for (int t = 0; t < numberOfThreads; t++)
-            {
-                threads[t].sleep = false;
-            }
 
             if (!threadsStarted)
             {
@@ -639,7 +613,7 @@ namespace Lighthouse3
                 {
                     ths[t].Start();
                 }
-            }
+            } 
         }
 
         public void AdaptiveSampling(int x, int y)
@@ -774,19 +748,18 @@ namespace Lighthouse3
     {
         private readonly int threadIndex;
         private readonly Camera camera;
-        public bool sleep = false;
 
-        private TacingThreadCallback callback;
         public static int workLeft;
+        private Barrier barrier;
 
         [DllImport("kernel32")]
         static extern int GetCurrentThreadId();
 
-        public TracingThread(int threadIndex, Camera camera, TacingThreadCallback callback)
+        public TracingThread(int threadIndex, Camera camera, Barrier barrier)
         {
             this.threadIndex = threadIndex;
             this.camera = camera;
-            this.callback = callback;
+            this.barrier = barrier;
             foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
             {
                 int utid = GetCurrentThreadId();
@@ -801,45 +774,28 @@ namespace Lighthouse3
 
         public void ThreadProc()
         {
-
-            //Initializes random seed in calc
             Calc.Init();
 
             while (true)
             {
-                if (sleep)
+                int index = Interlocked.Decrement(ref workLeft);
+
+                if (index < 0)
                 {
-                    Thread.Sleep(1);
+                    barrier.SignalAndWait();
                     continue;
                 }
 
-                while (true)
-                {
-                    if (sleep)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-                    int index = Interlocked.Decrement(ref workLeft);
+                //Console.WriteLine("Thread " + threadIndex + " grabbing work " + index);
 
-                    if (index < 0)
-                    {
-                        sleep = true;
-                        callback.Invoke(threadIndex);
-                        continue;
-                    }
+                int x = index % camera.screenWidth;
+                int y = index / camera.screenWidth;
 
-                    //Console.WriteLine("Thread " + threadIndex + " grabbing work " + index);
+                camera.CalculateRay(x, y);
+                if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
+                    camera.AdaptiveSampling(x, y);
 
-                    int x = index % camera.screenWidth;
-                    int y = index / camera.screenWidth;
-
-                    camera.CalculateRay(x, y);
-                    if (camera.adaptiveSampling != Camera.AdaptiveSamplingMethod.None)
-                        camera.AdaptiveSampling(x, y);
-
-                    camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
-                }
+                camera.pixelColors[x + y * camera.screenWidth] = camera.GetFinalColor(x, y);
             }
         }
     }
